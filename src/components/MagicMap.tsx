@@ -16,7 +16,6 @@ interface MagicMapProps {
   language: Language;
   onSelectVehicle: (vehicleId: string) => void;
   onSelectStop: (stopId: string) => void;
-  onAddDummyVan: (routeId: string) => void;
   onResetFleet?: () => void;
   basemap?: 'carto-voyager' | 'esri-free' | 'carto-dark' | 'schematic' | 'osm';
   isDark?: boolean;
@@ -34,7 +33,6 @@ export const MagicMap: React.FC<MagicMapProps> = ({
   language,
   onSelectVehicle,
   onSelectStop,
-  onAddDummyVan,
   onResetFleet,
   basemap = 'carto-voyager',
   isDark = false,
@@ -48,7 +46,6 @@ export const MagicMap: React.FC<MagicMapProps> = ({
   const vehiclesLayerRef = useRef<L.FeatureGroup | null>(null);
   const userLayerRef = useRef<L.FeatureGroup | null>(null);
   const vehicleMarkersMapRef = useRef<Map<string, L.Marker>>(new Map());
-  const [showAddVanMenu, setShowAddVanMenu] = React.useState(false);
   const [showLayerMenu, setShowLayerMenu] = React.useState(false);
   const [mapMode, setMapMode] = useState<'leaflet' | 'schematic'>(
     basemap === 'schematic' ? 'schematic' : 'leaflet'
@@ -663,63 +660,6 @@ export const MagicMap: React.FC<MagicMapProps> = ({
             </button>
           )}
 
-          {/* Quick Add Dummy Van Button */}
-          <div className="relative">
-            <button
-              onClick={() => setShowAddVanMenu((prev) => !prev)}
-              className="bg-amber-500 hover:bg-amber-400 text-slate-950 font-black px-3 py-2 rounded-xl shadow-md text-xs flex items-center gap-1.5 transition-colors cursor-pointer"
-            >
-              <span>➕</span>
-              <span>{language === 'ne' ? 'डमी म्याजिक थप्नुहोस्' : 'Add Dummy Van'}</span>
-            </button>
-
-            {showAddVanMenu && (
-              <div className="absolute top-full left-0 mt-1.5 w-64 bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-800 p-2 z-40 space-y-1">
-                <div className="px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                  {language === 'ne' ? 'कुन रुटमा थप्ने?' : 'Select Route to Spawn:'}
-                </div>
-                {routes.map((r) => (
-                  <button
-                    key={r.id}
-                    onClick={() => {
-                      onAddDummyVan(r.id);
-                      setShowAddVanMenu(false);
-                    }}
-                    className="w-full text-left p-2 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-xl text-xs flex items-center gap-2 cursor-pointer transition-colors"
-                  >
-                    <span
-                      className="w-5 h-5 rounded-md text-white font-black text-[10px] flex items-center justify-center shrink-0"
-                      style={{ backgroundColor: r.color }}
-                    >
-                      R{r.routeNumber}
-                    </span>
-                    <div className="truncate">
-                      <div className="font-bold text-slate-800 dark:text-slate-100 truncate">
-                        {language === 'ne' ? r.nameNe : r.nameEn}
-                      </div>
-                      <div className="text-[10px] text-slate-400">
-                        {r.isCircular ? 'Circular Loop' : 'Direct Corridor'}
-                      </div>
-                    </div>
-                  </button>
-                ))}
-
-                {onResetFleet && (
-                  <div className="pt-1 border-t border-slate-100 dark:border-slate-800 mt-1">
-                    <button
-                      onClick={() => {
-                        onResetFleet();
-                        setShowAddVanMenu(false);
-                      }}
-                      className="w-full text-left px-2 py-1.5 text-[11px] text-slate-500 hover:text-rose-600 dark:hover:text-rose-400 rounded-lg cursor-pointer"
-                    >
-                      ↺ {language === 'ne' ? 'मूल फ्लीट रिसेट गर्नुहोस्' : 'Reset to Default Fleet'}
-                    </button>
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
         </div>
       </div>
 

@@ -10,7 +10,6 @@ import { RoutesList } from './components/RoutesList';
 import { LiveFleetTracker } from './components/LiveFleetTracker';
 import { SettingsPage, ThemeMode, BasemapProvider } from './pages/SettingsPage';
 import { FaresPage } from './pages/FaresPage';
-import { GuidePage } from './pages/GuidePage';
 import { Navigation, X } from 'lucide-react';
 
 function AppContent() {
@@ -107,52 +106,6 @@ function AppContent() {
     }
   };
 
-  // Add dummy van
-  const handleAddDummyVan = (routeId: string) => {
-    const route = TRANSIT_ROUTES.find((r) => r.id === routeId) || TRANSIT_ROUTES[0];
-    const randomPlateNum = Math.floor(1000 + Math.random() * 9000);
-    const prefixes = ['ना १ ज', 'बा १ ज', 'ना २ ज', 'बा २ ज'];
-    const randomPrefix = prefixes[Math.floor(Math.random() * prefixes.length)];
-    const drivers = [
-      'Ganesh Gurung (गणेश गुरुङ)',
-      'Rajesh Thapa (राजेश थापा)',
-      'Pooja Shrestha (पूजा श्रेष्ठ)',
-      'Dipak Regmi (दिपक रेग्मी)',
-      'Santosh Adhikari (सन्तोष अधिकारी)',
-      'Bina Mahato (बिना महतो)',
-    ];
-    const randomDriver = drivers[Math.floor(Math.random() * drivers.length)];
-    const seats = Math.floor(Math.random() * 10);
-    const occupancy: OccupancyStatus = seats === 0 ? 'full' : seats <= 3 ? 'moderate' : 'empty';
-
-    const randomWpIndex = Math.floor(Math.random() * (route.waypoints.length - 1));
-    const chosenWp = route.waypoints[randomWpIndex];
-
-    const newVan: MagicVehicle = {
-      id: `dummy-magic-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
-      plateNumber: `${randomPrefix} ${randomPlateNum}`,
-      driverName: randomDriver,
-      routeId: route.id,
-      routeNumber: route.routeNumber,
-      currentLat: chosenWp[0] + (Math.random() - 0.5) * 0.002,
-      currentLng: chosenWp[1] + (Math.random() - 0.5) * 0.002,
-      heading: Math.floor(Math.random() * 360),
-      speedKmH: Math.floor(22 + Math.random() * 14),
-      occupancy,
-      availableSeats: seats,
-      totalSeats: 10,
-      currentStopIndex: Math.min(randomWpIndex, route.stops.length - 1),
-      nextStopId: route.stops[1]?.id || route.stops[0].id,
-      nextStopNameEn: route.stops[1]?.nameEn || route.stops[0].nameEn,
-      nextStopNameNe: route.stops[1]?.nameNe || route.stops[0].nameNe,
-      estimatedNextStopSec: 90,
-      lastUpdated: 'Just now (Dummy Van)',
-    };
-
-    setVehicles((prev) => [newVan, ...prev]);
-    setSelectedVehicleId(newVan.id);
-  };
-
   const handleResetFleet = () => {
     setVehicles(INITIAL_MAGIC_VEHICLES);
     setSelectedVehicleId(null);
@@ -163,67 +116,11 @@ function AppContent() {
 
   // Map View Component
   const MapView = (
-    <div className="relative flex-1 flex flex-col min-h-[calc(100vh-64px)]">
-      {/* Route Filter Ribbon */}
-      <div className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 px-4 py-2.5 z-20 overflow-x-auto transition-colors">
-        <div className="max-w-7xl mx-auto flex items-center justify-between gap-4 min-w-max">
-          <div className="flex items-center gap-1.5">
-            <span className="text-xs font-bold text-slate-400 uppercase tracking-wider mr-1">
-              {language === 'ne' ? 'रुट छान्नुहोस्:' : 'Routes:'}
-            </span>
-
-            <button
-              onClick={() => setSelectedRouteId(null)}
-              className={`px-3 py-1 rounded-lg text-xs font-bold transition-colors cursor-pointer ${
-                selectedRouteId === null
-                  ? 'bg-slate-900 text-white dark:bg-amber-500 dark:text-slate-950 shadow-sm'
-                  : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
-              }`}
-            >
-              {language === 'ne' ? 'सबै रुटहरू' : 'All Routes'}
-            </button>
-
-            {TRANSIT_ROUTES.map((route) => {
-              const isSelected = selectedRouteId === route.id;
-              return (
-                <button
-                  key={route.id}
-                  onClick={() => setSelectedRouteId(isSelected ? null : route.id)}
-                  className={`px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
-                    isSelected
-                      ? 'text-white shadow-sm ring-2 ring-slate-900 dark:ring-white'
-                      : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
-                  }`}
-                  style={{
-                    backgroundColor: isSelected ? route.color : undefined,
-                  }}
-                >
-                  <span className="w-2 h-2 rounded-full" style={{ backgroundColor: route.color }}></span>
-                  <span>Route {route.routeNumber}</span>
-                  <span className="font-normal opacity-85 text-[11px]">
-                    ({route.isCircular ? (language === 'ne' ? 'चक्रिय' : 'Loop') : (language === 'ne' ? 'सीधा' : 'Direct')})
-                  </span>
-                </button>
-              );
-            })}
-          </div>
-
-          {/* Locate User Button */}
-          <button
-            onClick={handleLocateUser}
-            className="flex items-center gap-1.5 px-3 py-1 text-xs font-bold text-slate-700 dark:text-slate-300 hover:text-amber-600 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-lg transition-colors cursor-pointer"
-            title={language === 'ne' ? 'मेरो स्थान पत्ता लगाउनुहोस्' : 'Find My Location'}
-          >
-            <Navigation className="w-3.5 h-3.5 text-amber-500" />
-            <span>{language === 'ne' ? 'स्थान' : 'Locate'}</span>
-          </button>
-        </div>
-      </div>
-
+    <div className="relative flex-1 flex flex-col min-h-[calc(100vh-112px)]">
       {/* Interactive Map Viewport */}
       <div
         className="relative flex-1 w-full"
-        style={{ height: 'calc(100vh - 120px)', minHeight: '580px', width: '100%' }}
+        style={{ height: 'calc(100vh - 112px)', minHeight: '580px', width: '100%' }}
       >
         <MagicMap
           routes={TRANSIT_ROUTES}
@@ -245,9 +142,18 @@ function AppContent() {
             setSelectedStopId(id);
             setSelectedVehicleId(null);
           }}
-          onAddDummyVan={handleAddDummyVan}
           onResetFleet={handleResetFleet}
         />
+
+        {/* Locate User floating button */}
+        <button
+          onClick={handleLocateUser}
+          className="absolute top-4 right-4 z-20 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md hover:bg-slate-100 dark:hover:bg-slate-800 px-3 py-2 rounded-xl shadow-md border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-200 transition-colors cursor-pointer text-xs font-bold flex items-center gap-1.5"
+          title={language === 'ne' ? 'मेरो स्थान' : 'Locate My Position'}
+        >
+          <Navigation className="w-3.5 h-3.5 text-amber-500" />
+          <span className="hidden sm:inline">{language === 'ne' ? 'मेरो स्थान' : 'Locate'}</span>
+        </button>
 
         {/* Selected Vehicle Float Card */}
         {activeVehicle && (
@@ -377,16 +283,32 @@ function AppContent() {
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col text-slate-900 dark:text-slate-100 font-sans transition-colors">
       <Navbar
+        routes={TRANSIT_ROUTES}
+        selectedRouteId={selectedRouteId}
+        onSelectRoute={setSelectedRouteId}
         language={language}
-        onToggleLanguage={() => setLanguage((prev) => (prev === 'en' ? 'ne' : 'en'))}
-        theme={theme}
-        onToggleTheme={() => setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'))}
       />
 
       <main className="flex-1 flex flex-col">
         <Routes>
           <Route path="/" element={MapView} />
           <Route path="/map" element={MapView} />
+          <Route
+            path="/plan"
+            element={
+              <RoutePlanner
+                stops={TRANSIT_STOPS}
+                routes={TRANSIT_ROUTES}
+                vehicles={vehicles}
+                language={language}
+                onLocateUser={handleLocateUser}
+                userLocation={userLocation}
+                onSelectRoute={(id) => setSelectedRouteId(id)}
+                onSelectVehicle={(id) => setSelectedVehicleId(id)}
+                onNavigateToMap={() => navigate('/')}
+              />
+            }
+          />
           <Route
             path="/planner"
             element={
@@ -402,6 +324,14 @@ function AppContent() {
                 onNavigateToMap={() => navigate('/')}
               />
             }
+          />
+          <Route
+            path="/fare"
+            element={<FaresPage stops={TRANSIT_STOPS} routes={TRANSIT_ROUTES} language={language} />}
+          />
+          <Route
+            path="/fares"
+            element={<FaresPage stops={TRANSIT_STOPS} routes={TRANSIT_ROUTES} language={language} />}
           />
           <Route
             path="/routes"
@@ -428,11 +358,6 @@ function AppContent() {
               />
             }
           />
-          <Route
-            path="/fares"
-            element={<FaresPage stops={TRANSIT_STOPS} routes={TRANSIT_ROUTES} language={language} />}
-          />
-          <Route path="/guide" element={<GuidePage language={language} />} />
           <Route
             path="/settings"
             element={
@@ -462,32 +387,23 @@ function AppContent() {
             <span>Chitwan, Nepal</span>
           </div>
 
-          <div className="flex flex-wrap items-center justify-center gap-4 text-xs font-medium text-slate-600 dark:text-slate-300">
-            <Link to="/map" className="hover:text-amber-600 transition-colors">
+          <div className="flex flex-wrap items-center justify-center gap-5 text-xs font-semibold text-slate-600 dark:text-slate-300">
+            <Link to="/" className="hover:text-amber-600 transition-colors">
               Map
             </Link>
-            <Link to="/planner" className="hover:text-amber-600 transition-colors">
-              Planner
+            <Link to="/plan" className="hover:text-amber-600 transition-colors">
+              Plan
             </Link>
-            <Link to="/routes" className="hover:text-amber-600 transition-colors">
-              Routes
-            </Link>
-            <Link to="/fleet" className="hover:text-amber-600 transition-colors">
-              Fleet
-            </Link>
-            <Link to="/fares" className="hover:text-amber-600 transition-colors">
-              Fares
+            <Link to="/fare" className="hover:text-amber-600 transition-colors">
+              Fare
             </Link>
             <Link to="/settings" className="hover:text-amber-600 transition-colors">
               Settings
             </Link>
-            <Link to="/guide" className="hover:text-amber-600 transition-colors">
-              Guide
-            </Link>
           </div>
 
           <div className="text-[11px] text-slate-400 dark:text-slate-500">
-            Theme: "Everyday problems, smart solutions"
+            Smart Microvan Transit Solution
           </div>
         </div>
       </footer>

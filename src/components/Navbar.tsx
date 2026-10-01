@@ -1,227 +1,159 @@
 import React from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { Language } from '../types/transit';
-import { Radio, MapPin, Route, Bus, BookOpen, Calculator, Globe, Settings, Moon, Sun } from 'lucide-react';
-import { ThemeMode } from '../pages/SettingsPage';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { TransitRoute, Language } from '../types/transit';
+import { MapPin, Route as RouteIcon, Calculator, Settings as SettingsIcon } from 'lucide-react';
 
 interface NavbarProps {
+  routes: TransitRoute[];
+  selectedRouteId: string | null;
+  onSelectRoute: (routeId: string | null) => void;
   language: Language;
-  onToggleLanguage: () => void;
-  theme: ThemeMode;
-  onToggleTheme: () => void;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
+  routes,
+  selectedRouteId,
+  onSelectRoute,
   language,
-  onToggleLanguage,
-  theme,
-  onToggleTheme,
 }) => {
   const location = useLocation();
+  const navigate = useNavigate();
   const currentPath = location.pathname;
 
   const isActive = (path: string) => {
     if (path === '/' && (currentPath === '/' || currentPath === '/map')) return true;
+    if (path === '/plan' && (currentPath === '/plan' || currentPath === '/planner')) return true;
+    if (path === '/fare' && (currentPath === '/fare' || currentPath === '/fares')) return true;
     return currentPath === path;
   };
 
+  const handleRouteClick = (routeId: string | null) => {
+    onSelectRoute(routeId);
+    if (currentPath !== '/' && currentPath !== '/map') {
+      navigate('/');
+    }
+  };
+
   return (
-    <header className="sticky top-0 z-50 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 transition-colors">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-4">
-        {/* Brand wordmark */}
-        <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl bg-amber-500 text-slate-950 flex items-center justify-center font-black text-lg shadow-sm">
+    <header className="sticky top-0 z-50 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 transition-colors shadow-xs">
+      {/* Top Bar: LOGO+TITLE, map, plan, fare and settings */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 h-14 sm:h-16 flex items-center justify-between gap-4">
+        {/* LOGO + TITLE */}
+        <Link
+          to="/"
+          className="flex items-center gap-2.5 sm:gap-3 group cursor-pointer focus:outline-none shrink-0"
+        >
+          <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-amber-500 text-slate-950 flex items-center justify-center font-black text-base sm:text-lg shadow-sm">
             M
           </div>
-          <Link
-            to="/"
-            className="text-left group cursor-pointer focus:outline-none"
-          >
-            <span className="font-display font-black text-lg sm:text-xl tracking-tight text-slate-900 dark:text-white group-hover:text-amber-600 transition-colors">
-              MagicTrack <span className="text-amber-600 font-extrabold text-sm sm:text-base">Bharatpur</span>
-            </span>
-          </Link>
-        </div>
+          <span className="font-display font-black text-base sm:text-xl tracking-tight text-slate-900 dark:text-white group-hover:text-amber-600 transition-colors">
+            MagicTrack <span className="text-amber-600 font-extrabold text-xs sm:text-sm">Bharatpur</span>
+          </span>
+        </Link>
 
-        {/* Zone 2: One-word nav links */}
-        <nav className="hidden lg:flex items-center gap-1 bg-slate-100/80 dark:bg-slate-800/80 p-1 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-300">
+        {/* Clean nav: map, plan, fare, settings */}
+        <nav className="flex items-center gap-1 sm:gap-1.5 bg-slate-100/90 dark:bg-slate-800/80 p-1 rounded-xl text-xs sm:text-sm font-semibold text-slate-600 dark:text-slate-300">
           <Link
             to="/"
-            className={`px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1.5 ${
+            className={`px-2.5 sm:px-3.5 py-1.5 rounded-lg transition-colors flex items-center gap-1.5 ${
               isActive('/')
-                ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-sm'
-                : 'hover:text-slate-900 dark:hover:text-white'
+                ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-xs font-bold'
+                : 'hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/60 dark:hover:bg-slate-700/50'
             }`}
           >
             <MapPin className="w-3.5 h-3.5" />
-            <span>{language === 'ne' ? 'नक्सा' : 'Map'}</span>
+            <span className="capitalize">{language === 'ne' ? 'नक्सा' : 'map'}</span>
           </Link>
 
           <Link
-            to="/planner"
-            className={`px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1.5 ${
-              isActive('/planner')
-                ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-sm'
-                : 'hover:text-slate-900 dark:hover:text-white'
+            to="/plan"
+            className={`px-2.5 sm:px-3.5 py-1.5 rounded-lg transition-colors flex items-center gap-1.5 ${
+              isActive('/plan')
+                ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-xs font-bold'
+                : 'hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/60 dark:hover:bg-slate-700/50'
             }`}
           >
-            <Route className="w-3.5 h-3.5" />
-            <span>{language === 'ne' ? 'योजना' : 'Planner'}</span>
+            <RouteIcon className="w-3.5 h-3.5" />
+            <span className="capitalize">{language === 'ne' ? 'योजना' : 'plan'}</span>
           </Link>
 
           <Link
-            to="/routes"
-            className={`px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1.5 ${
-              isActive('/routes')
-                ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-sm'
-                : 'hover:text-slate-900 dark:hover:text-white'
-            }`}
-          >
-            <Bus className="w-3.5 h-3.5" />
-            <span>{language === 'ne' ? 'रुट' : 'Routes'}</span>
-          </Link>
-
-          <Link
-            to="/fleet"
-            className={`px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1.5 ${
-              isActive('/fleet')
-                ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-sm'
-                : 'hover:text-slate-900 dark:hover:text-white'
-            }`}
-          >
-            <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
-            <span>{language === 'ne' ? 'फ्लीट' : 'Fleet'}</span>
-          </Link>
-
-          <Link
-            to="/fares"
-            className={`px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1.5 ${
-              isActive('/fares')
-                ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-sm'
-                : 'hover:text-slate-900 dark:hover:text-white'
+            to="/fare"
+            className={`px-2.5 sm:px-3.5 py-1.5 rounded-lg transition-colors flex items-center gap-1.5 ${
+              isActive('/fare')
+                ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-xs font-bold'
+                : 'hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/60 dark:hover:bg-slate-700/50'
             }`}
           >
             <Calculator className="w-3.5 h-3.5" />
-            <span>{language === 'ne' ? 'भाडा' : 'Fares'}</span>
+            <span className="capitalize">{language === 'ne' ? 'भाडा' : 'fare'}</span>
           </Link>
 
           <Link
             to="/settings"
-            className={`px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1.5 ${
+            className={`px-2.5 sm:px-3.5 py-1.5 rounded-lg transition-colors flex items-center gap-1.5 ${
               isActive('/settings')
-                ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-sm'
-                : 'hover:text-slate-900 dark:hover:text-white'
+                ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-xs font-bold'
+                : 'hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/60 dark:hover:bg-slate-700/50'
             }`}
           >
-            <Settings className="w-3.5 h-3.5" />
-            <span>{language === 'ne' ? 'सेटिङ' : 'Settings'}</span>
+            <SettingsIcon className="w-3.5 h-3.5" />
+            <span className="capitalize">{language === 'ne' ? 'सेटिङ' : 'settings'}</span>
           </Link>
         </nav>
-
-        {/* Zone 3: Actions */}
-        <div className="flex items-center gap-2 sm:gap-3">
-          {/* Quick Theme Toggle */}
-          <button
-            onClick={onToggleTheme}
-            title={theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
-            className="p-2 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors cursor-pointer"
-          >
-            {theme === 'dark' ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4" />}
-          </button>
-
-          {/* Settings Route Link */}
-          <Link
-            to="/settings"
-            title={language === 'ne' ? 'सेटिङहरू' : 'Settings'}
-            className={`p-2 rounded-lg transition-colors cursor-pointer ${
-              isActive('/settings')
-                ? 'bg-amber-100 dark:bg-amber-950/40 text-amber-900 dark:text-amber-300'
-                : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800'
-            }`}
-          >
-            <Settings className="w-4 h-4" />
-          </Link>
-
-          {/* Hackathon Guide Route Link */}
-          <Link
-            to="/guide"
-            title={language === 'ne' ? 'परियोजना गाइड' : 'Hackathon Pitch'}
-            className={`p-2 rounded-lg transition-colors cursor-pointer ${
-              isActive('/guide')
-                ? 'bg-amber-100 dark:bg-amber-950/40 text-amber-900 dark:text-amber-300'
-                : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800'
-            }`}
-          >
-            <BookOpen className="w-4 h-4" />
-          </Link>
-
-          {/* Language Switcher */}
-          <button
-            onClick={onToggleLanguage}
-            className="px-2.5 py-1 text-xs font-semibold bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 rounded-lg transition-colors flex items-center gap-1 cursor-pointer"
-          >
-            <Globe className="w-3.5 h-3.5" />
-            <span>{language === 'ne' ? 'EN' : 'नेपाली'}</span>
-          </button>
-        </div>
       </div>
 
-      {/* Mobile Secondary Navigation Row */}
-      <div className="lg:hidden flex items-center justify-around border-t border-slate-100 dark:border-slate-800 px-2 py-1.5 bg-slate-50 dark:bg-slate-950 text-[11px] font-semibold text-slate-600 dark:text-slate-400">
-        <Link
-          to="/"
-          className={`px-2 py-1 rounded flex items-center gap-1 ${
-            isActive('/') ? 'text-amber-600 dark:text-amber-400 font-bold' : ''
-          }`}
-        >
-          <MapPin className="w-3 h-3" />
-          <span>{language === 'ne' ? 'नक्सा' : 'Map'}</span>
-        </Link>
-        <Link
-          to="/planner"
-          className={`px-2 py-1 rounded flex items-center gap-1 ${
-            isActive('/planner') ? 'text-amber-600 dark:text-amber-400 font-bold' : ''
-          }`}
-        >
-          <Route className="w-3 h-3" />
-          <span>{language === 'ne' ? 'योजना' : 'Planner'}</span>
-        </Link>
-        <Link
-          to="/routes"
-          className={`px-2 py-1 rounded flex items-center gap-1 ${
-            isActive('/routes') ? 'text-amber-600 dark:text-amber-400 font-bold' : ''
-          }`}
-        >
-          <Bus className="w-3 h-3" />
-          <span>{language === 'ne' ? 'रुट' : 'Routes'}</span>
-        </Link>
-        <Link
-          to="/fleet"
-          className={`px-2 py-1 rounded flex items-center gap-1 ${
-            isActive('/fleet') ? 'text-amber-600 dark:text-amber-400 font-bold' : ''
-          }`}
-        >
-          <div className="w-1.5 h-1.5 rounded-full bg-emerald-500"></div>
-          <span>{language === 'ne' ? 'फ्लीट' : 'Fleet'}</span>
-        </Link>
-        <Link
-          to="/fares"
-          className={`px-2 py-1 rounded flex items-center gap-1 ${
-            isActive('/fares') ? 'text-amber-600 dark:text-amber-400 font-bold' : ''
-          }`}
-        >
-          <Calculator className="w-3 h-3" />
-          <span>{language === 'ne' ? 'भाडा' : 'Fares'}</span>
-        </Link>
-        <Link
-          to="/settings"
-          className={`px-2 py-1 rounded flex items-center gap-1 ${
-            isActive('/settings') ? 'text-amber-600 dark:text-amber-400 font-bold' : ''
-          }`}
-        >
-          <Settings className="w-3 h-3" />
-          <span>{language === 'ne' ? 'सेटिङ' : 'Settings'}</span>
-        </Link>
+      {/* Horizontal List with Chips: List out all the routes */}
+      <div className="border-t border-slate-200/70 dark:border-slate-800/80 bg-slate-50/95 dark:bg-slate-950/70 px-4 sm:px-6 py-2">
+        <div className="max-w-7xl mx-auto flex items-center gap-2 overflow-x-auto no-scrollbar py-0.5">
+          <span className="text-[11px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider shrink-0 mr-1 hidden sm:inline">
+            {language === 'ne' ? 'रुटहरू:' : 'Routes:'}
+          </span>
+
+          {/* All Routes Chip */}
+          <button
+            onClick={() => handleRouteClick(null)}
+            className={`px-3 py-1 rounded-full text-xs font-bold transition-all shrink-0 cursor-pointer flex items-center gap-1.5 ${
+              selectedRouteId === null
+                ? 'bg-slate-900 text-white dark:bg-amber-500 dark:text-slate-950 shadow-xs ring-1 ring-slate-900 dark:ring-amber-400'
+                : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700'
+            }`}
+          >
+            <span className="w-1.5 h-1.5 rounded-full bg-current"></span>
+            <span>{language === 'ne' ? 'सबै रुट' : 'All Routes'}</span>
+          </button>
+
+          {/* Route Chips */}
+          {routes.map((route) => {
+            const isSelected = selectedRouteId === route.id;
+            return (
+              <button
+                key={route.id}
+                onClick={() => handleRouteClick(isSelected ? null : route.id)}
+                className={`px-3 py-1 rounded-full text-xs font-bold transition-all shrink-0 cursor-pointer flex items-center gap-1.5 ${
+                  isSelected
+                    ? 'text-white shadow-xs ring-2 ring-slate-900 dark:ring-white scale-102'
+                    : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700'
+                }`}
+                style={{
+                  backgroundColor: isSelected ? route.color : undefined,
+                }}
+              >
+                <span
+                  className="w-2 h-2 rounded-full shrink-0"
+                  style={{ backgroundColor: isSelected ? '#ffffff' : route.color }}
+                ></span>
+                <span>Route {route.routeNumber}</span>
+                <span className="font-normal opacity-85 text-[11px] hidden md:inline">
+                  · {route.nameEn.split('-')[1]?.trim() || route.nameEn}
+                </span>
+                <span className="text-[10px] opacity-75 font-normal">
+                  ({route.isCircular ? (language === 'ne' ? 'चक्र' : 'Loop') : (language === 'ne' ? 'सीधा' : 'Direct')})
+                </span>
+              </button>
+            );
+          })}
+        </div>
       </div>
     </header>
   );
