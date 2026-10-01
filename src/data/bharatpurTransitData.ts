@@ -201,23 +201,33 @@ export const TRANSIT_ROUTES: TransitRoute[] = [
       TRANSIT_STOPS.find(s => s.id === 'stop-pulchowk')!,
     ],
     waypoints: [
-      [27.6938, 84.4225], // Pulchowk
-      [27.6925, 84.4242],
+      [27.6938, 84.4225], // Pulchowk (Narayani Bridge Entry)
+      [27.6925, 84.4242], // Main Bazaar Road
       [27.6912, 84.4258], // Sahid Chowk
-      [27.6898, 84.4273],
+      [27.6898, 84.4273], // Narayangarh Commercial strip
       [27.6885, 84.4288], // Lions Chowk
-      [27.6840, 84.4320],
-      [27.6798, 84.4350], // Chaubiskothi
-      [27.6775, 84.4385],
-      [27.6750, 84.4420], // Hakim Chowk
-      [27.6715, 84.4435],
-      [27.6680, 84.4452], // Paras Buspark
-      [27.6770, 84.4440],
-      [27.6855, 84.4425], // Bypass
-      [27.6940, 84.4360],
-      [27.7025, 84.4295], // Aptari
-      [27.6980, 84.4260],
-      [27.6938, 84.4225], // Return Pulchowk
+      [27.6865, 84.4302], // Bharatpur 4-lane Highway
+      [27.6842, 84.4318], // Narayangarh-Bharatpur Highway
+      [27.6820, 84.4335], // Towards Chaubiskothi
+      [27.6798, 84.4350], // Chaubiskothi Roundabout
+      [27.6782, 84.4372], // East-West Highway
+      [27.6766, 84.4398], // Approach to Hakim Chowk
+      [27.6750, 84.4420], // Hakim Chowk (Admin Node)
+      [27.6730, 84.4428], // Central Bus Terminal Road
+      [27.6705, 84.4438], // Bus Terminal approach
+      [27.6680, 84.4452], // Paras Buspark (Central Terminal)
+      [27.6710, 84.4450], // Ring Road East
+      [27.6750, 84.4445], // Ring Road East corridor
+      [27.6800, 84.4438], // Bypass road heading north
+      [27.6855, 84.4425], // Bypass Road Junction (Ganesthan road)
+      [27.6900, 84.4402], // North Bypass Road
+      [27.6945, 84.4365], // Bypass Road Curve
+      [27.6985, 84.4330], // Towards Aptari
+      [27.7025, 84.4295], // Aptari Chowk (Mugling Highway entry)
+      [27.7005, 84.4275], // Narayangarh Bypass road downhill
+      [27.6980, 84.4255], // Riverfront road
+      [27.6958, 84.4238], // Narayangarh bridge approach
+      [27.6938, 84.4225], // Return to Pulchowk (Loop complete)
     ]
   },
   {
@@ -243,15 +253,21 @@ export const TRANSIT_ROUTES: TransitRoute[] = [
       TRANSIT_STOPS.find(s => s.id === 'stop-geetanagar')!,
     ],
     waypoints: [
-      [27.6938, 84.4225],
-      [27.6885, 84.4288],
-      [27.6798, 84.4350],
-      [27.6745, 84.4340], // Hospital
-      [27.6695, 84.4270], // CMC
-      [27.6650, 84.4320],
-      [27.6610, 84.4375], // Krishnapur
-      [27.6450, 84.4250],
-      [27.6320, 84.4150], // Geetanagar
+      [27.6938, 84.4225], // Pulchowk
+      [27.6912, 84.4258], // Sahid Chowk
+      [27.6885, 84.4288], // Lions Chowk
+      [27.6842, 84.4318], // Highway
+      [27.6798, 84.4350], // Chaubiskothi
+      [27.6775, 84.4346], // Hospital Road turn
+      [27.6745, 84.4340], // Bharatpur Hospital
+      [27.6720, 84.4310], // Link road to CMC
+      [27.6695, 84.4270], // CMC Teaching Hospital
+      [27.6655, 84.4315], // Krishnapur Link
+      [27.6610, 84.4375], // Krishnapur Chowk
+      [27.6530, 84.4310], // South Chitwan Highway
+      [27.6440, 84.4240], // Ujjan Road
+      [27.6380, 84.4190], // Geetanagar approach
+      [27.6320, 84.4150], // Geetanagar Chowk
     ]
   },
   {
@@ -274,13 +290,16 @@ export const TRANSIT_ROUTES: TransitRoute[] = [
       TRANSIT_STOPS.find(s => s.id === 'stop-rampur')!,
     ],
     waypoints: [
-      [27.6938, 84.4225],
-      [27.6912, 84.4258],
-      [27.6820, 84.4100],
-      [27.6740, 84.3950],
-      [27.6650, 84.3780], // Mangalpur
-      [27.6580, 84.3650],
-      [27.6490, 84.3530], // Rampur AFU
+      [27.6938, 84.4225], // Pulchowk
+      [27.6912, 84.4258], // Sahid Chowk
+      [27.6870, 84.4210], // Riverbank West road
+      [27.6820, 84.4120], // Toward Mangalpur Road
+      [27.6770, 84.4020], // Belchok Road
+      [27.6710, 84.3900], // Shivalaya Road
+      [27.6650, 84.3780], // Mangalpur Bazaar
+      [27.6600, 84.3680], // Rampur link
+      [27.6550, 84.3600], // Campus avenue
+      [27.6490, 84.3530], // Rampur AFU Main Gate
     ]
   },
   {
@@ -305,13 +324,17 @@ export const TRANSIT_ROUTES: TransitRoute[] = [
       TRANSIT_STOPS.find(s => s.id === 'stop-tandi')!,
     ],
     waypoints: [
-      [27.6938, 84.4225],
-      [27.6885, 84.4288],
-      [27.6798, 84.4350],
-      [27.6680, 84.4452],
-      [27.6520, 84.4690], // Gondrang
-      [27.6350, 84.4920], // Tikoli Jungle
-      [27.6180, 84.5150], // Tandi
+      [27.6938, 84.4225], // Pulchowk
+      [27.6885, 84.4288], // Lions Chowk
+      [27.6798, 84.4350], // Chaubiskothi
+      [27.6750, 84.4420], // Hakim Chowk
+      [27.6680, 84.4452], // Paras Buspark
+      [27.6600, 84.4560], // Highway East
+      [27.6520, 84.4690], // Gondrang Chowk
+      [27.6440, 84.4810], // Tikoli Forest Entry
+      [27.6360, 84.4920], // Tikoli Mid-Corridor
+      [27.6280, 84.5030], // Ratnanagar border
+      [27.6180, 84.5150], // Tandi / Sauraha Chowk
     ]
   },
   {
@@ -334,11 +357,15 @@ export const TRANSIT_ROUTES: TransitRoute[] = [
       TRANSIT_STOPS.find(s => s.id === 'stop-jagatpur')!,
     ],
     waypoints: [
-      [27.6938, 84.4225],
-      [27.6798, 84.4350],
-      [27.6320, 84.4150],
-      [27.6100, 84.4050],
-      [27.5850, 84.3980], // Jagatpur
+      [27.6938, 84.4225], // Pulchowk
+      [27.6885, 84.4288], // Lions Chowk
+      [27.6798, 84.4350], // Chaubiskothi
+      [27.6530, 84.4310], // Southward highway
+      [27.6320, 84.4150], // Geetanagar Chowk
+      [27.6200, 84.4100], // Patihani Road
+      [27.6080, 84.4050], // Patihani Bazaar
+      [27.5950, 84.4010], // Approach to Kasara
+      [27.5850, 84.3980], // Jagatpur (CNP Headquarters Gate)
     ]
   }
 ];

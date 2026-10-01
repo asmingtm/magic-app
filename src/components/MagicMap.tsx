@@ -18,6 +18,9 @@ interface MagicMapProps {
   onSelectStop: (stopId: string) => void;
   onAddDummyVan: (routeId: string) => void;
   onResetFleet?: () => void;
+  basemap?: 'carto-voyager' | 'esri-free' | 'carto-dark' | 'schematic' | 'osm';
+  isDark?: boolean;
+  onBasemapChange?: (basemap: 'carto-voyager' | 'esri-free' | 'carto-dark' | 'schematic') => void;
 }
 
 export const MagicMap: React.FC<MagicMapProps> = ({
@@ -33,16 +36,32 @@ export const MagicMap: React.FC<MagicMapProps> = ({
   onSelectStop,
   onAddDummyVan,
   onResetFleet,
+  basemap = 'carto-voyager',
+  isDark = false,
+  onBasemapChange,
 }) => {
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<L.Map | null>(null);
+  const tileLayerRef = useRef<L.TileLayer | null>(null);
   const polylinesLayerRef = useRef<L.FeatureGroup | null>(null);
   const stopsLayerRef = useRef<L.FeatureGroup | null>(null);
   const vehiclesLayerRef = useRef<L.FeatureGroup | null>(null);
   const userLayerRef = useRef<L.FeatureGroup | null>(null);
   const vehicleMarkersMapRef = useRef<Map<string, L.Marker>>(new Map());
   const [showAddVanMenu, setShowAddVanMenu] = React.useState(false);
-  const [mapMode, setMapMode] = useState<'leaflet' | 'schematic'>('leaflet');
+  const [showLayerMenu, setShowLayerMenu] = React.useState(false);
+  const [mapMode, setMapMode] = useState<'leaflet' | 'schematic'>(
+    basemap === 'schematic' ? 'schematic' : 'leaflet'
+  );
+
+  useEffect(() => {
+    if (basemap === 'schematic') {
+      setMapMode('schematic');
+    } else {
+      setMapMode('leaflet');
+      setTimeout(() => mapInstanceRef.current?.invalidateSize(), 80);
+    }
+  }, [basemap]);
 
   const handleCenterBharatpur = () => {
     if (mapInstanceRef.current) {
@@ -52,6 +71,11 @@ export const MagicMap: React.FC<MagicMapProps> = ({
 
   const handleToggleMapMode = (mode: 'leaflet' | 'schematic') => {
     setMapMode(mode);
+    if (mode === 'schematic' && onBasemapChange) {
+      onBasemapChange('schematic');
+    } else if (mode === 'leaflet' && onBasemapChange && basemap === 'schematic') {
+      onBasemapChange(isDark ? 'carto-dark' : 'carto-voyager');
+    }
     if (mode === 'leaflet') {
       setTimeout(() => {
         mapInstanceRef.current?.invalidateSize();
@@ -68,14 +92,6 @@ export const MagicMap: React.FC<MagicMapProps> = ({
       zoom: 13,
       zoomControl: false,
     });
-
-    // High clarity CartoDB Voyager tiles with OpenStreetMap data
-    const tileLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-      maxZoom: 19,
-      attribution: '&copy; OpenStreetMap contributors, &copy; CARTO',
-      subdomains: 'abcd',
-    });
-    tileLayer.addTo(map);
 
     // Zoom control at bottom right
     L.control.zoom({ position: 'bottomright' }).addTo(map);
@@ -118,6 +134,54 @@ export const MagicMap: React.FC<MagicMapProps> = ({
       mapInstanceRef.current = null;
     };
   }, []);
+
+  // Dynamic Tile Layer Swapping with CARTO Voyager key & 100% Free ESRI Fallback
+  useEffect(() => {
+    const map = mapInstanceRef.current;
+    if (!map) return;
+
+    if (tileLayerRef.current) {
+      map.removeLayer(tileLayerRef.current);
+    }
+
+    // CARTO Basemaps API Key provided by user
+    const cartoApiKey = import.meta.env.VITE_CARTO_API_KEY || 'cb1_45sg_1_7ddcb1d86f803b45b303b0a5';
+    const esriStreetUrl = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}';
+    const esriAttribution = 'Tiles &copy; Esri &mdash; Sources: GEBCO, USGS, Garmin, HERE, OpenStreetMap contributors';
+
+    let tileUrl = `https://basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png?key=${cartoApiKey}`;
+    let tileAttribution = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>, &copy; <a href="https://carto.com/attributions">CARTO</a>';
+
+    if (basemap === 'carto-dark' || (isDark && basemap !== 'esri-free' && basemap !== 'schematic')) {
+      tileUrl = `https://basemaps.cartocdn.com/rastertiles/dark_all/{z}/{x}/{y}.png?key=${cartoApiKey}`;
+      tileAttribution = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>, &copy; <a href="https://carto.com/attributions">CARTO</a>';
+    } else if (basemap === 'esri-free') {
+      tileUrl = esriStreetUrl;
+      tileAttribution = esriAttribution;
+    } else {
+      // Default: CARTO Voyager with key
+      tileUrl = `https://basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png?key=${cartoApiKey}`;
+      tileAttribution = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>, &copy; <a href="https://carto.com/attributions">CARTO</a>';
+    }
+
+    const layer = L.tileLayer(tileUrl, {
+      maxZoom: 19,
+      attribution: tileAttribution,
+    });
+
+    // Guaranteed fallback: If CARTO or custom tile experiences any network error, fallback to free ESRI
+    layer.on('tileerror', () => {
+      if (!tileUrl.includes('arcgisonline.com')) {
+        layer.setUrl(esriStreetUrl);
+      }
+    });
+
+    layer.addTo(map);
+    tileLayerRef.current = layer;
+    map.invalidateSize();
+  }, [basemap, isDark]);
+
+
 
   // 2. Render Polylines for routes
   useEffect(() => {
@@ -457,48 +521,141 @@ export const MagicMap: React.FC<MagicMapProps> = ({
       )}
 
       {/* Map Overlay Controls */}
-      <div className="absolute top-4 left-4 z-20 flex flex-col gap-2">
+      <div className="absolute top-4 left-4 z-30 flex flex-col gap-2">
         <div className="flex flex-wrap items-center gap-2">
           {/* Fleet count badge */}
-          <div className="bg-white/95 backdrop-blur-md px-3 py-2 rounded-xl shadow-md border border-slate-200 flex items-center gap-2">
+          <div className="bg-white/95 dark:bg-slate-900/95 backdrop-blur-md px-3 py-2 rounded-xl shadow-md border border-slate-200 dark:border-slate-800 flex items-center gap-2">
             <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping"></div>
-            <div className="text-xs font-semibold text-slate-800">
+            <div className="text-xs font-semibold text-slate-800 dark:text-slate-100">
               {language === 'ne' ? 'भरतपुर प्रत्यक्ष म्याजिक' : 'Bharatpur Live Transit'}
             </div>
-            <span className="text-[11px] text-slate-600 font-bold bg-slate-100 px-1.5 py-0.5 rounded">
+            <span className="text-[11px] text-slate-600 dark:text-slate-300 font-bold bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded">
               {vehicles.length} {language === 'ne' ? 'म्याजिक' : 'vans'}
             </span>
           </div>
 
-          {/* Map Mode Switcher */}
-          <div className="flex items-center bg-white/95 backdrop-blur-md p-1 rounded-xl shadow-md border border-slate-200 text-xs">
+          {/* Map Layer Switcher Dropdown */}
+          <div className="relative">
             <button
-              onClick={() => handleToggleMapMode('leaflet')}
-              className={`px-2.5 py-1 rounded-lg font-bold transition-colors cursor-pointer ${
-                mapMode === 'leaflet'
-                  ? 'bg-slate-900 text-white shadow-sm'
-                  : 'text-slate-600 hover:text-slate-900'
-              }`}
+              onClick={() => setShowLayerMenu((prev) => !prev)}
+              className="bg-white/95 dark:bg-slate-900/95 backdrop-blur-md hover:bg-slate-100 dark:hover:bg-slate-800 px-3 py-2 rounded-xl shadow-md border border-slate-200 dark:border-slate-800 text-xs font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1.5 transition-colors cursor-pointer"
+              title="Change Map Style"
             >
-              🗺️ {language === 'ne' ? 'सडक नक्सा' : 'Street Map'}
+              <span>{mapMode === 'schematic' ? '🧭' : basemap === 'carto-dark' ? '🌙' : basemap === 'esri-free' ? '🆓' : '🗺️'}</span>
+              <span className="hidden sm:inline">
+                {mapMode === 'schematic'
+                  ? (language === 'ne' ? 'ट्रान्जिट भेक्टर' : 'Vector Schematic')
+                  : basemap === 'esri-free'
+                  ? (language === 'ne' ? 'निःशुल्क नक्सा' : 'Free ESRI Map')
+                  : basemap === 'carto-dark'
+                  ? (language === 'ne' ? 'डार्क नक्सा' : 'Dark Map')
+                  : (language === 'ne' ? 'सडक नक्सा' : 'CARTO Map')}
+              </span>
+              <span className="text-[10px] opacity-60">▼</span>
             </button>
-            <button
-              onClick={() => handleToggleMapMode('schematic')}
-              className={`px-2.5 py-1 rounded-lg font-bold transition-colors cursor-pointer ${
-                mapMode === 'schematic'
-                  ? 'bg-slate-900 text-white shadow-sm'
-                  : 'text-slate-600 hover:text-slate-900'
-              }`}
-            >
-              🧭 {language === 'ne' ? 'ट्रान्जिट नक्सा' : 'Transit Vector'}
-            </button>
+
+            {showLayerMenu && (
+              <div className="absolute top-full left-0 mt-1.5 w-56 bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-800 p-2 z-40 space-y-1">
+                <div className="px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                  {language === 'ne' ? 'नक्सा शैली छान्नुहोस्:' : 'Select Map Basemap:'}
+                </div>
+
+                <button
+                  onClick={() => {
+                    handleToggleMapMode('leaflet');
+                    if (onBasemapChange) onBasemapChange('carto-voyager');
+                    setShowLayerMenu(false);
+                  }}
+                  className={`w-full text-left px-2.5 py-2 rounded-xl text-xs flex items-center justify-between cursor-pointer transition-colors ${
+                    mapMode === 'leaflet' && basemap === 'carto-voyager'
+                      ? 'bg-amber-50 dark:bg-amber-950/40 text-amber-900 dark:text-amber-300 font-bold'
+                      : 'hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300'
+                  }`}
+                >
+                  <div className="flex items-center gap-2">
+                    <span>🗺️</span>
+                    <div>
+                      <div className="font-bold">CARTO Voyager</div>
+                      <div className="text-[10px] opacity-75">Clean Street (Key Active)</div>
+                    </div>
+                  </div>
+                  {mapMode === 'leaflet' && basemap === 'carto-voyager' && <span>✓</span>}
+                </button>
+
+                <button
+                  onClick={() => {
+                    handleToggleMapMode('leaflet');
+                    if (onBasemapChange) onBasemapChange('esri-free');
+                    setShowLayerMenu(false);
+                  }}
+                  className={`w-full text-left px-2.5 py-2 rounded-xl text-xs flex items-center justify-between cursor-pointer transition-colors ${
+                    mapMode === 'leaflet' && basemap === 'esri-free'
+                      ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-900 dark:text-emerald-300 font-bold'
+                      : 'hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300'
+                  }`}
+                >
+                  <div className="flex items-center gap-2">
+                    <span>🆓</span>
+                    <div>
+                      <div className="font-bold">ESRI World Street</div>
+                      <div className="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold">100% Free · No Key</div>
+                    </div>
+                  </div>
+                  {mapMode === 'leaflet' && basemap === 'esri-free' && <span>✓</span>}
+                </button>
+
+                <button
+                  onClick={() => {
+                    handleToggleMapMode('leaflet');
+                    if (onBasemapChange) onBasemapChange('carto-dark');
+                    setShowLayerMenu(false);
+                  }}
+                  className={`w-full text-left px-2.5 py-2 rounded-xl text-xs flex items-center justify-between cursor-pointer transition-colors ${
+                    mapMode === 'leaflet' && basemap === 'carto-dark'
+                      ? 'bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white font-bold'
+                      : 'hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300'
+                  }`}
+                >
+                  <div className="flex items-center gap-2">
+                    <span>🌙</span>
+                    <div>
+                      <div className="font-bold">Dark Matter</div>
+                      <div className="text-[10px] opacity-75">Night Transit Mode</div>
+                    </div>
+                  </div>
+                  {mapMode === 'leaflet' && basemap === 'carto-dark' && <span>✓</span>}
+                </button>
+
+                <button
+                  onClick={() => {
+                    handleToggleMapMode('schematic');
+                    if (onBasemapChange) onBasemapChange('schematic');
+                    setShowLayerMenu(false);
+                  }}
+                  className={`w-full text-left px-2.5 py-2 rounded-xl text-xs flex items-center justify-between cursor-pointer transition-colors ${
+                    mapMode === 'schematic'
+                      ? 'bg-purple-50 dark:bg-purple-950/40 text-purple-900 dark:text-purple-300 font-bold'
+                      : 'hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300'
+                  }`}
+                >
+                  <div className="flex items-center gap-2">
+                    <span>🧭</span>
+                    <div>
+                      <div className="font-bold">Vector Schematic</div>
+                      <div className="text-[10px] opacity-75">Zero Network / Offline</div>
+                    </div>
+                  </div>
+                  {mapMode === 'schematic' && <span>✓</span>}
+                </button>
+              </div>
+            )}
           </div>
 
           {/* Center Map button */}
           {mapMode === 'leaflet' && (
             <button
               onClick={handleCenterBharatpur}
-              className="bg-white/95 backdrop-blur-md hover:bg-slate-100 p-2 rounded-xl shadow-md border border-slate-200 text-slate-700 transition-colors cursor-pointer text-xs font-semibold flex items-center gap-1"
+              className="bg-white/95 dark:bg-slate-900/95 backdrop-blur-md hover:bg-slate-100 dark:hover:bg-slate-800 p-2 rounded-xl shadow-md border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-200 transition-colors cursor-pointer text-xs font-semibold flex items-center gap-1"
               title={language === 'ne' ? 'भरतपुर केन्द्रित गर्नुहोस्' : 'Center on Bharatpur'}
             >
               <span>🎯</span>
@@ -517,7 +674,7 @@ export const MagicMap: React.FC<MagicMapProps> = ({
             </button>
 
             {showAddVanMenu && (
-              <div className="absolute top-full left-0 mt-1.5 w-60 bg-white rounded-2xl shadow-xl border border-slate-200 p-2 z-30 space-y-1">
+              <div className="absolute top-full left-0 mt-1.5 w-64 bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-800 p-2 z-40 space-y-1">
                 <div className="px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-400">
                   {language === 'ne' ? 'कुन रुटमा थप्ने?' : 'Select Route to Spawn:'}
                 </div>
@@ -528,7 +685,7 @@ export const MagicMap: React.FC<MagicMapProps> = ({
                       onAddDummyVan(r.id);
                       setShowAddVanMenu(false);
                     }}
-                    className="w-full text-left p-2 hover:bg-slate-50 rounded-xl text-xs flex items-center gap-2 cursor-pointer transition-colors"
+                    className="w-full text-left p-2 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-xl text-xs flex items-center gap-2 cursor-pointer transition-colors"
                   >
                     <span
                       className="w-5 h-5 rounded-md text-white font-black text-[10px] flex items-center justify-center shrink-0"
@@ -537,7 +694,7 @@ export const MagicMap: React.FC<MagicMapProps> = ({
                       R{r.routeNumber}
                     </span>
                     <div className="truncate">
-                      <div className="font-bold text-slate-800 truncate">
+                      <div className="font-bold text-slate-800 dark:text-slate-100 truncate">
                         {language === 'ne' ? r.nameNe : r.nameEn}
                       </div>
                       <div className="text-[10px] text-slate-400">
@@ -548,13 +705,13 @@ export const MagicMap: React.FC<MagicMapProps> = ({
                 ))}
 
                 {onResetFleet && (
-                  <div className="pt-1 border-t border-slate-100 mt-1">
+                  <div className="pt-1 border-t border-slate-100 dark:border-slate-800 mt-1">
                     <button
                       onClick={() => {
                         onResetFleet();
                         setShowAddVanMenu(false);
                       }}
-                      className="w-full text-left px-2 py-1.5 text-[11px] text-slate-500 hover:text-rose-600 rounded-lg cursor-pointer"
+                      className="w-full text-left px-2 py-1.5 text-[11px] text-slate-500 hover:text-rose-600 dark:hover:text-rose-400 rounded-lg cursor-pointer"
                     >
                       ↺ {language === 'ne' ? 'मूल फ्लीट रिसेट गर्नुहोस्' : 'Reset to Default Fleet'}
                     </button>
@@ -567,18 +724,18 @@ export const MagicMap: React.FC<MagicMapProps> = ({
       </div>
 
       {/* Map Legend on bottom left */}
-      <div className="hidden sm:flex absolute bottom-4 left-4 z-20 bg-white/95 backdrop-blur-md px-3.5 py-2 rounded-xl shadow-md border border-slate-200 text-xs gap-4 items-center">
+      <div className="hidden sm:flex absolute bottom-4 left-4 z-20 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md px-3.5 py-2 rounded-xl shadow-md border border-slate-200 dark:border-slate-800 text-xs gap-4 items-center">
         <div className="flex items-center gap-1.5">
           <div className="w-2.5 h-2.5 rounded-full bg-emerald-500"></div>
-          <span className="text-slate-700 text-[11px] font-medium">{language === 'ne' ? 'सिट खाली' : 'Seats open'}</span>
+          <span className="text-slate-700 dark:text-slate-300 text-[11px] font-medium">{language === 'ne' ? 'सिट खाली' : 'Seats open'}</span>
         </div>
         <div className="flex items-center gap-1.5">
           <div className="w-2.5 h-2.5 rounded-full bg-amber-500"></div>
-          <span className="text-slate-700 text-[11px] font-medium">{language === 'ne' ? 'केही सिट' : 'Few seats'}</span>
+          <span className="text-slate-700 dark:text-slate-300 text-[11px] font-medium">{language === 'ne' ? 'केही सिट' : 'Few seats'}</span>
         </div>
         <div className="flex items-center gap-1.5">
           <div className="w-2.5 h-2.5 rounded-full bg-rose-500"></div>
-          <span className="text-slate-700 text-[11px] font-medium">{language === 'ne' ? 'भरिभराउ (प्याक)' : 'Full'}</span>
+          <span className="text-slate-700 dark:text-slate-300 text-[11px] font-medium">{language === 'ne' ? 'भरिभराउ (प्याक)' : 'Full'}</span>
         </div>
       </div>
     </div>

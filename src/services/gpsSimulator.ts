@@ -68,7 +68,7 @@ export function advanceSimulatedVehicles(vehicles: MagicVehicle[], speedMultipli
     const currentLng = vehicle.currentLng;
 
     // Find closest waypoint segment
-    let nearestIndex = 0;
+    let nearestIndex = vehicle.waypointIndex ?? 0;
     let minWaypointDist = Infinity;
     for (let i = 0; i < waypoints.length; i++) {
       const d = calculateDistanceKm(currentLat, currentLng, waypoints[i][0], waypoints[i][1]);
@@ -78,8 +78,30 @@ export function advanceSimulatedVehicles(vehicles: MagicVehicle[], speedMultipli
       }
     }
 
-    // Determine target waypoint
-    const nextWaypointIndex = (nearestIndex + 1) % waypoints.length;
+    // Determine target waypoint based on circular vs linear route
+    let currentDirection = vehicle.direction || 'forward';
+    let nextWaypointIndex: number;
+
+    if (route.isCircular) {
+      nextWaypointIndex = (nearestIndex + 1) % waypoints.length;
+    } else {
+      if (currentDirection === 'forward') {
+        if (nearestIndex >= waypoints.length - 1) {
+          currentDirection = 'backward';
+          nextWaypointIndex = Math.max(0, waypoints.length - 2);
+        } else {
+          nextWaypointIndex = nearestIndex + 1;
+        }
+      } else {
+        if (nearestIndex <= 0) {
+          currentDirection = 'forward';
+          nextWaypointIndex = Math.min(waypoints.length - 1, 1);
+        } else {
+          nextWaypointIndex = nearestIndex - 1;
+        }
+      }
+    }
+
     const targetWp = waypoints[nextWaypointIndex];
 
     // Compute direction vector
@@ -88,36 +110,46 @@ export function advanceSimulatedVehicles(vehicles: MagicVehicle[], speedMultipli
     const distToTarget = Math.sqrt(dLat * dLat + dLng * dLng);
 
     // Calculate movement step size based on vehicle speed
-    const stepSize = 0.00035 * (vehicle.speedKmH / 28) * speedMultiplier;
+    const stepSize = 0.00028 * (vehicle.speedKmH / 28) * speedMultiplier;
 
     let newLat: number;
     let newLng: number;
     let heading = vehicle.heading;
+    let currentWpIndex = nearestIndex;
 
-    if (distToTarget < stepSize) {
-      // Reached waypoint, transition to next
+    if (distToTarget < stepSize || distToTarget === 0) {
+      // Reached waypoint, advance to next
       newLat = targetWp[0];
       newLng = targetWp[1];
-      const afterTargetIndex = (nextWaypointIndex + 1) % waypoints.length;
-      heading = calculateBearing(newLat, newLng, waypoints[afterTargetIndex][0], waypoints[afterTargetIndex][1]);
+      currentWpIndex = nextWaypointIndex;
+
+      let lookAheadIndex: number;
+      if (route.isCircular) {
+        lookAheadIndex = (nextWaypointIndex + 1) % waypoints.length;
+      } else {
+        lookAheadIndex = currentDirection === 'forward'
+          ? Math.min(waypoints.length - 1, nextWaypointIndex + 1)
+          : Math.max(0, nextWaypointIndex - 1);
+      }
+      heading = calculateBearing(newLat, newLng, waypoints[lookAheadIndex][0], waypoints[lookAheadIndex][1]);
     } else {
       newLat = currentLat + (dLat / distToTarget) * stepSize;
       newLng = currentLng + (dLng / distToTarget) * stepSize;
       heading = calculateBearing(currentLat, currentLng, targetWp[0], targetWp[1]);
     }
 
-    // Dynamic speed flutter (24 - 36 km/h) to simulate traffic at Chowks
-    const speedDrift = (Math.random() - 0.5) * 2;
-    const speedKmH = Math.min(38, Math.max(18, Math.round(vehicle.speedKmH + speedDrift)));
+    // Dynamic speed flutter (22 - 34 km/h) simulating Bharatpur street traffic
+    const speedDrift = (Math.random() - 0.5) * 1.5;
+    const speedKmH = Math.min(36, Math.max(18, Math.round(vehicle.speedKmH + speedDrift)));
 
     // Find next upcoming stop along route
     const nextStopInfo = findNextUpcomingStop(newLat, newLng, route);
 
-    // Slightly fluctuate available seats occasionally (passengers boarding/dropping)
+    // Fluctuate available seats occasionally
     let seats = vehicle.availableSeats;
     let occupancy: OccupancyStatus = vehicle.occupancy;
     if (Math.random() < 0.08) {
-      const change = Math.floor(Math.random() * 3) - 1; // -1, 0, +1
+      const change = Math.floor(Math.random() * 3) - 1;
       seats = Math.max(0, Math.min(vehicle.totalSeats, seats + change));
       if (seats === 0) occupancy = 'full';
       else if (seats <= 3) occupancy = 'moderate';
@@ -132,6 +164,8 @@ export function advanceSimulatedVehicles(vehicles: MagicVehicle[], speedMultipli
       speedKmH,
       availableSeats: seats,
       occupancy,
+      direction: currentDirection,
+      waypointIndex: currentWpIndex,
       nextStopId: nextStopInfo.stop.id,
       nextStopNameEn: nextStopInfo.stop.nameEn,
       nextStopNameNe: nextStopInfo.stop.nameNe,

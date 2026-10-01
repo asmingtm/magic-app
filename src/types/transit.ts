@@ -48,6 +48,8 @@ export interface MagicVehicle {
   estimatedNextStopSec: number;
   lastUpdated: string;
   isDriverBroadcasting?: boolean;
+  direction?: 'forward' | 'backward';
+  waypointIndex?: number;
 }
 
 export interface JourneyPlan {

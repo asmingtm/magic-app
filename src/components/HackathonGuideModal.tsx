@@ -43,8 +43,8 @@ export const HackathonGuideModal: React.FC<HackathonGuideModalProps> = ({
   ];
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 overflow-y-auto">
-      <div className="bg-white rounded-3xl max-w-2xl w-full shadow-2xl border border-slate-200 overflow-hidden animate-in fade-in zoom-in-95 duration-200 my-8 max-h-[90vh] flex flex-col">
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 overflow-y-auto">
+      <div className="bg-white dark:bg-slate-900 rounded-3xl max-w-2xl w-full shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden animate-in fade-in zoom-in-95 duration-200 my-8 max-h-[90vh] flex flex-col">
         {/* Header */}
         <div className="px-6 py-4 bg-slate-900 text-white flex items-center justify-between shrink-0">
           <div className="flex items-center gap-2.5">
@@ -81,7 +81,7 @@ export const HackathonGuideModal: React.FC<HackathonGuideModalProps> = ({
               <strong>The Everyday Problem:</strong> In Bharatpur & Narayangarh, hundreds of thousands of commuters, patients heading to Bharatpur Hospital, and university students (AFU Rampur, CMC, Birendra Campus) rely on Tata Magic microvans. Because there is no schedule or tracking, people wait 20–40 minutes at chowks without knowing if a Route 1 (Ring Road) van is coming or if it will be full.
             </p>
             <p className="text-xs text-amber-900 leading-relaxed">
-              <strong>The Smart Solution:</strong> <em>MagicTrack Chitwan</em> turns everyday smart devices into a real-time transit telemetry network. It shows live vehicle locations, remaining seat capacity, upcoming arrivals, and official regulated fares with zero expensive municipality infrastructure required.
+              <strong>The Smart Solution:</strong> <em>MagicTrack Chitwan</em> turns everyday smart devices into a real-time transit tracking network. It shows live vehicle locations, remaining seat capacity, upcoming arrivals, and official regulated fares with zero expensive municipality infrastructure required.
             </p>
           </div>
 
@@ -136,10 +136,10 @@ export const HackathonGuideModal: React.FC<HackathonGuideModalProps> = ({
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
               <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-200">
                 <span className="font-bold text-slate-900 block mb-1">
-                  1. Magic Driver Side (Telemetry)
+                  1. Vehicle Real-Time GPS Tracking
                 </span>
                 <p className="text-slate-600 text-[11px] leading-relaxed">
-                  Drivers simply open the web portal (or a dedicated lightweight Android app / $12 ESP32 OBD tracker in the van). A single tap on "Start Broadcast" broadcasts GPS latitude, longitude, and seat status via WebSocket/HTTP.
+                  Vans broadcast GPS latitude, longitude, and seat status via WebSocket/HTTP or an affordable OBD tracker.
                 </p>
               </div>
 
