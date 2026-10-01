@@ -33,10 +33,10 @@ export const RoutesList: React.FC<RoutesListProps> = ({
           <h2 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100 mb-1">
             {language === 'ne' ? 'चितवन भरतपुरका म्याजिक रुटहरू' : 'Chitwan Highway Magic Routes'}
           </h2>
-          <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
+          <p className="text-xs text-gray-500 dark:text-gray-400">
             {language === 'ne'
-              ? 'भरतपुर महानगरपालिका तथा आसपासका सबै आधिकारिक म्याजिक रुट र बिसौनीहरू।'
-              : 'Official Magic microvan corridors operating across Mahendra Highway and Bharatpur network.'}
+              ? 'भरतपुरका सबै आधिकारिक म्याजिक रुट र बिसौनीहरू'
+              : 'Official microvan corridors and bus stops'}
           </p>
         </div>
 

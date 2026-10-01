@@ -181,6 +181,8 @@ export const TRANSIT_ROUTES: TransitRoute[] = [
     routeNumber: "1",
     nameEn: "Ring Road Circular (चक्रिय मार्ग)",
     nameNe: "रिंगरोड चक्रिय मार्ग",
+    shortNameEn: "Ring Road",
+    shortNameNe: "चक्रपथ",
     descriptionEn: "High-frequency ring corridor along East-West Highway, Bypass Road & Narayangarh.",
     descriptionNe: "पूर्व-पश्चिम राजमार्ग, बाइपास सडक र नारायणगढ जोड्ने मुख्य चक्रिय रुट।",
     color: "#1a73e8", // Gemini / Google Blue
@@ -207,6 +209,8 @@ export const TRANSIT_ROUTES: TransitRoute[] = [
     routeNumber: "2",
     nameEn: "Pulchowk - Hospital - CMC - Geetanagar",
     nameNe: "पुलचोक - अस्पताल - सीएमसी - गीतानगर",
+    shortNameEn: "Geetanagar",
+    shortNameNe: "गीतानगर",
     descriptionEn: "Major medical and residential corridor serving Bharatpur Hospital, CMC & Geetanagar.",
     descriptionNe: "भरतपुर अस्पताल, सीएमसी शिक्षण अस्पताल र गीतानगर जोड्ने मुख्य रुट।",
     color: "#16a34a", // Forest Green
@@ -231,6 +235,8 @@ export const TRANSIT_ROUTES: TransitRoute[] = [
     routeNumber: "3",
     nameEn: "Pulchowk - Mangalpur - Rampur (AFU)",
     nameNe: "पुलचोक - मंगलपुर - रामपुर (कृषि क्याम्पस)",
+    shortNameEn: "Rampur",
+    shortNameNe: "रामपुर",
     descriptionEn: "Western corridor linking Narayangarh to Mangalpur & Agriculture & Forestry University.",
     descriptionNe: "विद्यार्थी र पश्चिम चितवनवासीका लागि रामपुर कृषि विश्वविद्यालय रुट।",
     color: "#d97706", // Amber
@@ -252,6 +258,8 @@ export const TRANSIT_ROUTES: TransitRoute[] = [
     routeNumber: "4",
     nameEn: "Narayangarh - Chaubiskothi - Tandi (Ratnanagar)",
     nameNe: "नारायणगढ - चौबिसकोठी - टाँडी (रत्ननगर)",
+    shortNameEn: "Tandi Highway",
+    shortNameNe: "टाँडी",
     descriptionEn: "Direct East-West Highway route through Barandabhar Tikoli forest to Sauraha entrance / Ratnanagar.",
     descriptionNe: "टिकौली जंगल हुँदै पूर्व-पश्चिम राजमार्ग भएर सौराहा प्रवेशद्वार रत्ननगर (टाँडी) जोड्ने द्रुत राजमार्ग रुट।",
     color: "#7c3aed", // Purple
@@ -276,6 +284,8 @@ export const TRANSIT_ROUTES: TransitRoute[] = [
     routeNumber: "5",
     nameEn: "Pulchowk - Geetanagar - Jagatpur (Kasara)",
     nameNe: "पुलचोक - गीतानगर - जगतपुर (कसरा)",
+    shortNameEn: "Jagatpur",
+    shortNameNe: "जगतपुर",
     descriptionEn: "South Chitwan corridor reaching Chitwan National Park Gate and Kasara ecotourism center.",
     descriptionNe: "चितवन राष्ट्रिय निकुञ्ज कसरा प्रवेशद्वार तथा जगतपुर जोड्ने दक्षिणी रुट।",
     color: "#e11d48", // Rose

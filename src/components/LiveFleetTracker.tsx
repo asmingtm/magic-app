@@ -61,15 +61,16 @@ export const LiveFleetTracker: React.FC<LiveFleetTrackerProps> = ({
           <h2 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100 mt-1">
             {language === 'ne' ? 'भरतपुर म्याजिक भ्यान स्थिति' : 'Active Bharatpur Highway Vans'}
           </h2>
-          <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
+          <p className="text-xs text-gray-500 dark:text-gray-400">
             {language === 'ne'
-              ? 'भरतपुर सडकमा गुडीरहेका सबै म्याजिकहरूको प्रत्यक्ष स्थान, गति र खाली सिट।'
-              : 'Live tracking of all microvans currently in service along Bharatpur highway corridors.'}
+              ? 'प्रत्यक्ष स्थान, गति र खाली सिट स्थिति'
+              : 'Live position, speed & seat status'}
           </p>
         </div>
 
         <button
           onClick={onNavigateToMap}
+          title={language === 'ne' ? 'प्रत्यक्ष नक्सा दृश्यमा जानुहोस्' : 'Switch to live interactive map view'}
           className="px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs rounded-xl flex items-center gap-2 transition-colors self-start md:self-auto cursor-pointer shadow-xs"
         >
           <span>{language === 'ne' ? 'नक्सामा हेर्नुहोस्' : 'Open Live Map'}</span>

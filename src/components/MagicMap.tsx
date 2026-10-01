@@ -11,7 +11,9 @@ import {
   RiEarthLine, 
   RiFocus2Line, 
   RiArrowDownSLine, 
-  RiCheckLine 
+  RiCheckLine,
+  RiCloseLine,
+  RiRouteLine
 } from 'react-icons/ri';
 
 interface MagicMapProps {
@@ -23,6 +25,7 @@ interface MagicMapProps {
   selectedStopId: string | null;
   userLocation: { lat: number; lng: number } | null;
   language: Language;
+  onSelectRoute?: (routeId: string | null) => void;
   onSelectVehicle: (vehicleId: string) => void;
   onSelectStop: (stopId: string) => void;
   onResetFleet?: () => void;
@@ -40,6 +43,7 @@ export const MagicMap: React.FC<MagicMapProps> = ({
   selectedStopId,
   userLocation,
   language,
+  onSelectRoute,
   onSelectVehicle,
   onSelectStop,
   onResetFleet,
@@ -59,6 +63,7 @@ export const MagicMap: React.FC<MagicMapProps> = ({
   const [mapMode, setMapMode] = useState<'leaflet' | 'schematic'>(
     basemap === 'schematic' ? 'schematic' : 'leaflet'
   );
+  const selectedRoute = routes.find((r) => r.id === selectedRouteId);
 
   useEffect(() => {
     if (basemap === 'schematic') {
@@ -198,8 +203,29 @@ export const MagicMap: React.FC<MagicMapProps> = ({
 
     routes.forEach((route) => {
       const isSelected = selectedRouteId === route.id;
-      const opacity = selectedRouteId ? (isSelected ? 0.95 : 0.25) : 0.75;
-      const weight = isSelected ? 6 : 4;
+      const opacity = selectedRouteId ? (isSelected ? 1.0 : 0.12) : 0.75;
+      const weight = isSelected ? 8 : 4;
+
+      // Glow halo & casing line for selected route to make it pop immediately
+      if (isSelected) {
+        const glow = L.polyline(route.waypoints, {
+          color: route.color,
+          weight: 16,
+          opacity: 0.35,
+          lineCap: 'round',
+          lineJoin: 'round',
+        });
+        layer.addLayer(glow);
+
+        const casing = L.polyline(route.waypoints, {
+          color: isDark ? '#ffffff' : '#0f172a',
+          weight: 11,
+          opacity: 0.85,
+          lineCap: 'round',
+          lineJoin: 'round',
+        });
+        layer.addLayer(casing);
+      }
 
       const polyline = L.polyline(route.waypoints, {
         color: route.color,
@@ -207,17 +233,32 @@ export const MagicMap: React.FC<MagicMapProps> = ({
         opacity,
         lineCap: 'round',
         lineJoin: 'round',
-        dashArray: route.isCircular ? undefined : undefined,
       });
 
+      const shortName = language === 'ne' 
+        ? (route.shortNameNe || route.nameNe) 
+        : (route.shortNameEn || route.nameEn);
+
       polyline.bindTooltip(
-        `<strong>Route ${route.routeNumber}</strong>: ${language === 'ne' ? route.nameNe : route.nameEn}`,
+        `<strong>R${route.routeNumber}: ${shortName}</strong> (${language === 'ne' ? 'क्लिक गरी छान्नुहोस्' : 'Click to select'})`,
         { sticky: true, className: 'transit-tooltip' }
       );
 
+      polyline.on('click', () => {
+        onSelectRoute?.(isSelected ? null : route.id);
+      });
+
       layer.addLayer(polyline);
+
+      if (isSelected && mapInstanceRef.current && route.waypoints.length > 0) {
+        mapInstanceRef.current.fitBounds(L.latLngBounds(route.waypoints), {
+          padding: [70, 70],
+          maxZoom: 14,
+          animate: true,
+        });
+      }
     });
-  }, [routes, selectedRouteId, language]);
+  }, [routes, selectedRouteId, language, isDark, onSelectRoute]);
 
   // 3. Render Stops
   useEffect(() => {
@@ -311,6 +352,8 @@ export const MagicMap: React.FC<MagicMapProps> = ({
       const isBroadcasting = vehicle.isDriverBroadcasting;
       const route = routes.find((r) => r.id === vehicle.routeId);
       const routeColor = route?.color || '#0284c7';
+      const isOnSelectedRoute = selectedRouteId ? vehicle.routeId === selectedRouteId : true;
+      const opacityClass = isOnSelectedRoute ? 'opacity-100' : 'opacity-25 scale-90';
 
       // Occupancy styling
       const occupancyDotColor =
@@ -321,7 +364,7 @@ export const MagicMap: React.FC<MagicMapProps> = ({
           : 'bg-rose-500';
 
       const html = `
-        <div class="magic-marker group cursor-pointer ${isSelected ? 'scale-110' : ''}">
+        <div class="magic-marker group cursor-pointer ${isSelected ? 'scale-110' : ''} ${opacityClass} transition-opacity duration-200">
           <div class="magic-marker-inner relative">
             <!-- Pulsing Ring for Live Tracking -->
             <div class="gps-pulse" style="background-color: ${routeColor}40"></div>
@@ -438,7 +481,7 @@ export const MagicMap: React.FC<MagicMapProps> = ({
 
       marker.bindPopup(popupContent, { maxWidth: 280 });
     });
-  }, [vehicles, routes, selectedVehicleId, language, onSelectVehicle]);
+  }, [vehicles, routes, selectedVehicleId, selectedRouteId, language, onSelectVehicle]);
 
   // 5. User GPS Location Marker
   useEffect(() => {
@@ -528,6 +571,7 @@ export const MagicMap: React.FC<MagicMapProps> = ({
             language={language}
             onSelectVehicle={onSelectVehicle}
             onSelectStop={onSelectStop}
+            onSelectRoute={onSelectRoute}
           />
         </div>
       )}
@@ -690,9 +734,105 @@ export const MagicMap: React.FC<MagicMapProps> = ({
               <span className="hidden sm:inline">{language === 'ne' ? 'केन्द्र' : 'Center'}</span>
             </button>
           )}
+        </div>
 
+        {/* On-Map Quick Route Selector with Shortened Names & Hover Tooltips */}
+        <div className="flex items-center gap-1.5 overflow-x-auto max-w-[calc(100vw-2.5rem)] sm:max-w-2xl py-1 select-none">
+          {/* All Routes Pill */}
+          <button
+            onClick={() => onSelectRoute?.(null)}
+            className={`px-2.5 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer shrink-0 shadow-xs border ${
+              !selectedRouteId
+                ? 'bg-neutral-900 text-white dark:bg-white dark:text-neutral-900 border-neutral-900 dark:border-white ring-2 ring-blue-500/30'
+                : 'bg-white/95 dark:bg-[#1e1f20]/95 backdrop-blur-md text-gray-700 dark:text-gray-300 border-gray-200 dark:border-neutral-800 hover:bg-gray-100 dark:hover:bg-neutral-800'
+            }`}
+            title={language === 'ne' ? 'सबै रुटहरू देखाउनुहोस्' : 'Show all highway routes'}
+          >
+            <RiRouteLine className="w-3.5 h-3.5" />
+            <span>{language === 'ne' ? 'सबै रुट' : 'All Routes'}</span>
+            <span className="text-[10px] opacity-75 font-mono">({vehicles.length})</span>
+          </button>
+
+          {/* Individual Shortened Route Pills */}
+          {routes.map((route) => {
+            const isSelected = selectedRouteId === route.id;
+            const routeVehiclesCount = vehicles.filter((v) => v.routeId === route.id).length;
+            const shortName = language === 'ne' 
+              ? (route.shortNameNe || route.nameNe) 
+              : (route.shortNameEn || route.nameEn);
+
+            return (
+              <button
+                key={route.id}
+                onClick={() => onSelectRoute?.(isSelected ? null : route.id)}
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer shrink-0 shadow-xs border ${
+                  isSelected
+                    ? 'text-white shadow-md ring-2 ring-white/90 ring-offset-2 ring-offset-blue-600 scale-105'
+                    : 'bg-white/95 dark:bg-[#1e1f20]/95 backdrop-blur-md text-gray-700 dark:text-gray-300 border-gray-200 dark:border-neutral-800 hover:bg-gray-100 dark:hover:bg-neutral-800'
+                }`}
+                style={{
+                  backgroundColor: isSelected ? route.color : undefined,
+                  borderColor: isSelected ? route.color : undefined,
+                }}
+                title={`Route ${route.routeNumber}: ${shortName} (${routeVehiclesCount} ${language === 'ne' ? 'गाडी' : 'vans'}) - ${
+                  isSelected 
+                    ? (language === 'ne' ? 'रुट हटाउन क्लिक गर्नुहोस्' : 'Click to deselect') 
+                    : (language === 'ne' ? 'रुट छान्नुहोस्' : 'Click to select')
+                }`}
+              >
+                <span
+                  className={`w-5 h-5 rounded-md font-extrabold text-[10px] flex items-center justify-center shrink-0 shadow-xs ${
+                    isSelected ? 'bg-white text-gray-900' : 'text-white'
+                  }`}
+                  style={{ backgroundColor: isSelected ? '#ffffff' : route.color }}
+                >
+                  R{route.routeNumber}
+                </span>
+                <span className={`font-bold text-[11px] whitespace-nowrap ${isSelected ? 'text-white' : ''}`}>
+                  {shortName}
+                </span>
+                <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-mono font-bold ${
+                  isSelected ? 'bg-white/25 text-white' : 'bg-gray-100 dark:bg-neutral-800 text-gray-500'
+                }`}>
+                  {routeVehiclesCount}
+                </span>
+                {isSelected && (
+                  <RiCloseLine className="w-3.5 h-3.5 text-white/90 hover:text-white ml-0.5" />
+                )}
+              </button>
+            );
+          })}
         </div>
       </div>
+
+      {/* Active Selected Route Floating Summary HUD */}
+      {selectedRoute && (
+        <div className="absolute top-20 right-4 z-20 bg-white/95 dark:bg-[#1e1f20]/95 backdrop-blur-md px-3.5 py-2.5 rounded-2xl shadow-xl border border-gray-200 dark:border-neutral-800 flex items-center gap-3">
+          <div 
+            className="w-8 h-8 rounded-xl text-white font-black text-xs flex items-center justify-center shrink-0 shadow-xs"
+            style={{ backgroundColor: selectedRoute.color }}
+          >
+            R{selectedRoute.routeNumber}
+          </div>
+          <div>
+            <div className="font-bold text-xs text-gray-900 dark:text-gray-100 flex items-center gap-1.5">
+              <span>{language === 'ne' ? (selectedRoute.shortNameNe || selectedRoute.nameNe) : (selectedRoute.shortNameEn || selectedRoute.nameEn)}</span>
+              <span className="text-[10px] font-mono text-gray-500">({selectedRoute.totalDistanceKm} km)</span>
+            </div>
+            <div className="text-[10px] text-gray-500 dark:text-gray-400 font-medium">
+              Rs. {selectedRoute.baseFareNpr}-{selectedRoute.maxFareNpr} · {vehicles.filter(v => v.routeId === selectedRoute.id).length} {language === 'ne' ? 'गाडी' : 'vans'}
+            </div>
+          </div>
+          <button
+            onClick={() => onSelectRoute?.(null)}
+            className="p-1.5 bg-gray-100 dark:bg-neutral-800 hover:bg-gray-200 dark:hover:bg-neutral-700 rounded-xl text-gray-600 dark:text-gray-300 transition-colors cursor-pointer text-xs font-semibold flex items-center gap-1"
+            title={language === 'ne' ? 'सबै रुटहरू देखाउनुहोस्' : 'Show all routes'}
+          >
+            <RiCloseLine className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">{language === 'ne' ? 'सबै' : 'Clear'}</span>
+          </button>
+        </div>
+      )}
 
       {/* Map Legend on bottom left */}
       <div className="hidden sm:flex absolute bottom-4 left-4 z-20 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md px-3.5 py-2 rounded-xl shadow-md border border-slate-200 dark:border-slate-800 text-xs gap-4 items-center">

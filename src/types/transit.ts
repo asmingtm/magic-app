@@ -16,6 +16,8 @@ export interface TransitRoute {
   routeNumber: string;
   nameEn: string;
   nameNe: string;
+  shortNameEn?: string;
+  shortNameNe?: string;
   descriptionEn: string;
   descriptionNe: string;
   color: string;

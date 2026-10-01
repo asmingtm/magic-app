@@ -94,13 +94,11 @@ export const RoutePlanner: React.FC<RoutePlannerProps> = ({
     <div className="max-w-4xl mx-auto p-4 sm:p-6 space-y-6">
       {/* Title Header */}
       <div className="bg-white dark:bg-[#1e1f20] rounded-2xl p-6 border border-gray-200 dark:border-neutral-800 shadow-xs transition-colors">
-        <h2 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100 mb-1">
+        <h2 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100 mb-0.5">
           {language === 'ne' ? 'भरतपुर म्याजिक यात्रा योजना' : 'Bharatpur Magic Journey Planner'}
         </h2>
-        <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
-          {language === 'ne'
-            ? 'चोक छान्नुहोस् र कुन म्याजिक चढ्ने, भाडा दर र आउने समय तत्काल हेर्नुहोस्।'
-            : 'Find the optimal Magic route along the highway, estimated travel time, live vehicle ETA, and official fares.'}
+        <p className="text-xs text-gray-500 dark:text-gray-400">
+          {language === 'ne' ? 'रुट, समय र आधिकारिक भाडा' : 'Optimal routes, live ETA & fares'}
         </p>
       </div>
 
@@ -111,11 +109,12 @@ export const RoutePlanner: React.FC<RoutePlannerProps> = ({
           <div className="md:col-span-5 space-y-1.5">
             <div className="flex items-center justify-between">
               <label className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
-                {language === 'ne' ? 'कहाँबाट (शुरुवाती चोक):' : 'Starting From (Origin):'}
+                {language === 'ne' ? 'कहाँबाट:' : 'From:'}
               </label>
               <button
                 type="button"
                 onClick={onLocateUser}
+                title={language === 'ne' ? 'मेरो हालको स्थान पत्ता लगाउनुहोस्' : 'Detect my location via GPS'}
                 className="text-[11px] font-semibold text-blue-600 dark:text-blue-400 hover:text-blue-700 flex items-center gap-1 cursor-pointer"
               >
                 <RiNavigationLine className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
@@ -145,7 +144,7 @@ export const RoutePlanner: React.FC<RoutePlannerProps> = ({
               type="button"
               onClick={handleSwapStops}
               className="p-3 bg-gray-100 hover:bg-gray-200 dark:bg-neutral-800 dark:hover:bg-neutral-700 text-gray-700 dark:text-gray-200 rounded-full transition-transform active:rotate-180 cursor-pointer shadow-xs border border-gray-200 dark:border-neutral-700"
-              title="Swap stops"
+              title={language === 'ne' ? 'स्थान साट्नुहोस्' : 'Swap origin and destination'}
             >
               <RiArrowUpDownLine className="w-4 h-4" />
             </button>
@@ -154,7 +153,7 @@ export const RoutePlanner: React.FC<RoutePlannerProps> = ({
           {/* Destination Stop */}
           <div className="md:col-span-5 space-y-1.5">
             <label className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
-              {language === 'ne' ? 'कहाँ जाने (गन्तव्य):' : 'Going To (Destination):'}
+              {language === 'ne' ? 'कहाँ जाने:' : 'To:'}
             </label>
             <select
               value={toStopId}

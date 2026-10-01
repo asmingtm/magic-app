@@ -47,7 +47,7 @@ export const FaresPage: React.FC<FaresPageProps> = ({
               {language === 'ne' ? 'चितवन भरतपुर म्याजिक भाडा दर' : 'Bharatpur Magic Fare Calculator'}
             </h2>
             <p className="text-xs text-gray-500 dark:text-gray-400">
-              {language === 'ne' ? 'भरतपुर महानगरपालिका आधिकारिक भाडा दर र छुट तालिका' : 'Official regulated transit rates & concession matrix for Chitwan district.'}
+              {language === 'ne' ? 'आधिकारिक भाडा दर र ४५% विद्यार्थी छुट तालिका' : 'Regulated transit rates & 45% student concession'}
             </p>
           </div>
         </div>
@@ -173,18 +173,13 @@ export const FaresPage: React.FC<FaresPageProps> = ({
           </table>
         </div>
 
-        <div className="p-3.5 bg-blue-50 dark:bg-blue-950/30 rounded-xl border border-blue-200/80 dark:border-blue-900 text-xs text-blue-900 dark:text-blue-300 flex items-start gap-2">
-          <RiShieldCheckLine className="w-4 h-4 text-blue-600 shrink-0 mt-0.5" />
-          <div>
-            <span className="font-bold block">
-              {language === 'ne' ? 'चितवन यातायात नियम र पारदर्शिता:' : 'Chitwan Transport Regulations:'}
-            </span>
-            <span>
-              {language === 'ne'
-                ? 'कुनै पनि चालकले तोकिएको भन्दा बढी भाडा लिन पाइँदैन। विद्यार्थी तथा जेष्ठ नागरिक परिचय पत्र देखाएमा अनिवार्य ४५% छुट उपलब्ध गराउनुपर्छ।'
-                : 'Fares are strictly regulated by District Transport Management Committee. 45% discount is legally mandatory with valid student/senior cards.'}
-            </span>
-          </div>
+        <div className="p-3 bg-blue-50 dark:bg-blue-950/30 rounded-xl border border-blue-200/80 dark:border-blue-900 text-xs text-blue-900 dark:text-blue-300 flex items-center gap-2">
+          <RiShieldCheckLine className="w-4 h-4 text-blue-600 shrink-0" />
+          <span className="font-medium">
+            {language === 'ne'
+              ? 'आधिकारिक नियम: तोकिएको दर मात्र मान्य। विद्यार्थी तथा ज्येष्ठ नागरिकलाई ४५% छुट अनिवार्य।'
+              : 'Official: Fixed rates only. Mandatory 45% discount for students & seniors with ID.'}
+          </span>
         </div>
       </div>
     </div>

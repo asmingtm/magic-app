@@ -136,6 +136,7 @@ function AppContent() {
           language={language}
           basemap={basemap}
           isDark={isDark}
+          onSelectRoute={setSelectedRouteId}
           onBasemapChange={setBasemap}
           onSelectVehicle={(id) => {
             setSelectedVehicleId(id);
