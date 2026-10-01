@@ -1,0 +1,81 @@
+@import "tailwindcss";
+@import "leaflet/dist/leaflet.css";
+
+@layer base {
+  body {
+    font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  }
+
+  h1, h2, h3, .font-display {
+    font-family: 'Cabinet Grotesk', 'Plus Jakarta Sans', sans-serif;
+  }
+}
+
+/* Custom leaflet marker and popup styles */
+.leaflet-container {
+  width: 100% !important;
+  height: 100% !important;
+  min-height: 550px !important;
+  font-family: inherit;
+  background-color: #e2e8f0;
+  position: relative;
+}
+
+.leaflet-tile {
+  visibility: inherit !important;
+  filter: saturate(1.1) brightness(1.02);
+}
+
+
+.magic-marker {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.magic-marker-inner {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@keyframes pulse-ring {
+  0% {
+    transform: scale(0.9);
+    opacity: 0.8;
+  }
+  50% {
+    transform: scale(1.35);
+    opacity: 0.3;
+  }
+  100% {
+    transform: scale(1.6);
+    opacity: 0;
+  }
+}
+
+.gps-pulse {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border-radius: 9999px;
+  animation: pulse-ring 2s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
+}
+
+/* Subtle scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.4);
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(100, 116, 139, 0.6);
+}

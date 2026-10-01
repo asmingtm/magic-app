@@ -1,0 +1,6 @@
+{
+  "name": "MagicTrack Bharatpur - Real-Time Magic Van Transit",
+  "description": "Live GPS tracking, route planner, fare calculator, and stop arrivals for Magic microvans in Bharatpur and Chitwan, Nepal.",
+  "requestFramePermissions": ["geolocation"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
