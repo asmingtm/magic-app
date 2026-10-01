@@ -1,6 +1,6 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { TransitStop, TransitRoute, MagicVehicle, Language } from '../types/transit';
-import { calculateDistanceKm, estimatePickupArrival, toNepaliNumber } from '../services/gpsSimulator';
+import { calculateDistanceKm, estimatePickupArrival, toNepaliNumber, findNearestStop } from '../services/gpsSimulator';
 import { 
   RiArrowUpDownLine, 
   RiNavigationLine, 
@@ -31,12 +31,23 @@ export const RoutePlanner: React.FC<RoutePlannerProps> = ({
   vehicles,
   language,
   onLocateUser,
+  userLocation,
   onSelectRoute,
   onSelectVehicle,
   onNavigateToMap,
 }) => {
   const [fromStopId, setFromStopId] = useState<string>('stop-chaubiskothi');
   const [toStopId, setToStopId] = useState<string>('stop-pulchowk');
+
+  // Auto-select nearest stop when user location is detected
+  useEffect(() => {
+    if (userLocation) {
+      const nearest = findNearestStop(userLocation.lat, userLocation.lng, stops);
+      if (nearest.stop.id !== toStopId) {
+        setFromStopId(nearest.stop.id);
+      }
+    }
+  }, [userLocation, stops]);
 
   const fromStop = useMemo(() => stops.find((s) => s.id === fromStopId) || stops[0], [stops, fromStopId]);
   const toStop = useMemo(() => stops.find((s) => s.id === toStopId) || stops[1], [stops, toStopId]);

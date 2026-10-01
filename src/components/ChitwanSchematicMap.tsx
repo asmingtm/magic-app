@@ -20,6 +20,7 @@ interface ChitwanSchematicMapProps {
   selectedRouteId: string | null;
   selectedVehicleId: string | null;
   selectedStopId: string | null;
+  userLocation?: { lat: number; lng: number } | null;
   language: Language;
   onSelectVehicle: (vehicleId: string) => void;
   onSelectStop: (stopId: string) => void;
@@ -33,6 +34,7 @@ export const ChitwanSchematicMap: React.FC<ChitwanSchematicMapProps> = ({
   selectedRouteId,
   selectedVehicleId,
   selectedStopId,
+  userLocation,
   language,
   onSelectVehicle,
   onSelectStop,
@@ -408,6 +410,25 @@ export const ChitwanSchematicMap: React.FC<ChitwanSchematicMapProps> = ({
               </g>
             );
           })}
+
+          {/* User Live Location Beacon */}
+          {userLocation && (() => {
+            const [ux, uy] = project(userLocation.lat, userLocation.lng);
+            return (
+              <g key="user-location-schematic" transform={`translate(${ux}, ${uy})`}>
+                <title>{language === 'ne' ? 'तपाईंको हालको स्थान' : 'Your Live Location'}</title>
+                {/* Radar pulse rings */}
+                <circle r="24" fill="#2563eb" fillOpacity="0.25" className="animate-ping" />
+                <circle r="14" fill="#3b82f6" fillOpacity="0.4" />
+                <circle r="7" fill="#2563eb" stroke="#ffffff" strokeWidth="2.5" filter="drop-shadow(0 2px 4px rgba(0,0,0,0.3))" />
+                {/* User label */}
+                <rect x="-24" y="-30" width="48" height="18" rx="5" fill="#2563eb" stroke="#ffffff" strokeWidth="1.5" />
+                <text x="0" y="-18" fill="#ffffff" fontSize="9" fontWeight="900" textAnchor="middle">
+                  {language === 'ne' ? 'तपाईं' : 'YOU'}
+                </text>
+              </g>
+            );
+          })()}
         </g>
       </svg>
 

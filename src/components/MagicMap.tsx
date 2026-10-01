@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import L from 'leaflet';
 import { MagicVehicle, TransitRoute, TransitStop, Language } from '../types/transit';
 import { BHARATPUR_CENTER } from '../data/bharatpurTransitData';
-import { toNepaliNumber } from '../services/gpsSimulator';
+import { toNepaliNumber, findNearestStop } from '../services/gpsSimulator';
 import { ChitwanSchematicMap } from './ChitwanSchematicMap';
 import { 
   RiCompass3Line, 
@@ -13,7 +13,8 @@ import {
   RiArrowDownSLine, 
   RiCheckLine,
   RiCloseLine,
-  RiRouteLine
+  RiRouteLine,
+  RiNavigationLine
 } from 'react-icons/ri';
 import { motion, AnimatePresence } from 'motion/react';
 
@@ -33,6 +34,9 @@ interface MagicMapProps {
   basemap?: 'carto-voyager' | 'esri-free' | 'carto-dark' | 'schematic' | 'osm';
   isDark?: boolean;
   onBasemapChange?: (basemap: 'carto-voyager' | 'esri-free' | 'carto-dark' | 'schematic') => void;
+  onLocateUser?: () => void;
+  isLocating?: boolean;
+  locateTrigger?: number;
 }
 
 export const MagicMap: React.FC<MagicMapProps> = ({
@@ -51,9 +55,13 @@ export const MagicMap: React.FC<MagicMapProps> = ({
   basemap = 'carto-voyager',
   isDark = false,
   onBasemapChange,
+  onLocateUser,
+  isLocating = false,
+  locateTrigger = 0,
 }) => {
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<L.Map | null>(null);
+  const userMarkerRef = useRef<L.Marker | null>(null);
   const tileLayerRef = useRef<L.TileLayer | null>(null);
   const polylinesLayerRef = useRef<L.FeatureGroup | null>(null);
   const stopsLayerRef = useRef<L.FeatureGroup | null>(null);
@@ -503,47 +511,113 @@ export const MagicMap: React.FC<MagicMapProps> = ({
     });
   }, [vehicles, routes, selectedVehicleId, selectedRouteId, language, onSelectVehicle]);
 
-  // 5. User GPS Location Marker
+  // 5. User GPS Location Marker with high-visibility beacon and interactive popup
   useEffect(() => {
     const layer = userLayerRef.current;
     if (!layer) return;
 
     layer.clearLayers();
+    userMarkerRef.current = null;
 
     if (userLocation) {
+      const nearest = findNearestStop(userLocation.lat, userLocation.lng, stops);
+      const nearestName = language === 'ne' ? nearest.stop.nameNe : nearest.stop.nameEn;
+      const distM = Math.round(nearest.distanceKm * 1000);
+
       const userHtml = `
-        <div class="relative flex items-center justify-center">
-          <div class="w-4 h-4 rounded-full bg-blue-600 border-2 border-white shadow-lg ring-4 ring-blue-300 ring-opacity-60"></div>
-          <div class="gps-pulse" style="background-color: rgba(37, 99, 235, 0.3);"></div>
+        <div class="relative flex items-center justify-center cursor-pointer touch-manipulation group">
+          <!-- Pulse ripple wave -->
+          <div class="absolute w-12 h-12 rounded-full bg-blue-500/30 animate-ping"></div>
+          
+          <!-- Accuracy glow halo -->
+          <div class="absolute w-9 h-9 rounded-full bg-blue-500/25 ring-2 ring-blue-400/50"></div>
+
+          <!-- YOU badge -->
+          <div class="absolute -top-7 whitespace-nowrap bg-blue-600 text-white font-extrabold text-[10px] px-2 py-0.5 rounded-full shadow-lg border border-white pointer-events-none tracking-tight">
+            ${language === 'ne' ? 'तपाईं यहाँ' : 'YOU'}
+          </div>
+
+          <!-- Core Dot -->
+          <div class="relative w-5 h-5 rounded-full bg-blue-600 border-2 border-white shadow-xl ring-2 ring-blue-500/80 flex items-center justify-center">
+            <div class="w-2 h-2 rounded-full bg-white"></div>
+          </div>
         </div>
       `;
 
       const userIcon = L.divIcon({
         html: userHtml,
         className: 'user-location-marker',
-        iconSize: [32, 32],
-        iconAnchor: [16, 16],
-        popupAnchor: [0, -16],
+        iconSize: [40, 40],
+        iconAnchor: [20, 20],
+        popupAnchor: [0, -22],
       });
 
-      const userMarker = L.marker([userLocation.lat, userLocation.lng], { icon: userIcon });
-      userMarker.bindTooltip(language === 'ne' ? 'तपाईंको स्थान (तपाईं यहाँ हुनुहुन्छ)' : 'Your Location', {
-        permanent: false,
-        direction: 'top',
+      const userMarker = L.marker([userLocation.lat, userLocation.lng], { 
+        icon: userIcon,
+        zIndexOffset: 1000,
       });
+
+      const popupContent = `
+        <div class="p-2.5 min-w-[210px] text-slate-900">
+          <div class="flex items-center gap-2 pb-1.5 border-b border-slate-100 mb-2">
+            <span class="w-2.5 h-2.5 rounded-full bg-blue-600 animate-ping"></span>
+            <span class="text-xs font-bold text-blue-700 uppercase tracking-wide">
+              ${language === 'ne' ? 'तपाईंको हालको स्थान' : 'Your Live Location'}
+            </span>
+          </div>
+
+          <div class="text-xs text-slate-700 mb-1.5 font-medium">
+            <div class="text-[10px] uppercase font-bold text-slate-400">
+              ${language === 'ne' ? 'नजिकैको म्याजिक बिसौनी:' : 'Nearest Magic Stop:'}
+            </div>
+            <div class="font-bold text-sm text-slate-900 mt-0.5">
+              ${nearestName}
+            </div>
+            <div class="text-[11px] text-blue-600 font-semibold mt-0.5">
+              ~${distM} ${language === 'ne' ? 'मिटर टाढा' : 'meters away'}
+            </div>
+          </div>
+
+          <div class="text-[10px] text-slate-400 font-mono pt-1.5 border-t border-slate-100 flex items-center justify-between">
+            <span>GPS: ${userLocation.lat.toFixed(4)}, ${userLocation.lng.toFixed(4)}</span>
+          </div>
+        </div>
+      `;
+
+      userMarker.bindPopup(popupContent, { maxWidth: 260 });
       layer.addLayer(userMarker);
+      userMarkerRef.current = userMarker;
 
       // Accuracy circle
       const accuracyCircle = L.circle([userLocation.lat, userLocation.lng], {
-        radius: 80,
+        radius: 75,
         color: '#2563eb',
         fillColor: '#3b82f6',
-        fillOpacity: 0.1,
-        weight: 1,
+        fillOpacity: 0.12,
+        weight: 1.5,
       });
       layer.addLayer(accuracyCircle);
     }
-  }, [userLocation, language]);
+  }, [userLocation, language, stops]);
+
+  // Centering & flyTo effect when user triggers locate
+  useEffect(() => {
+    const map = mapInstanceRef.current;
+    if (!map || !userLocation) return;
+
+    // Smooth animated fly-to user location with comfortable zoom
+    map.flyTo([userLocation.lat, userLocation.lng], 15, {
+      animate: true,
+      duration: 1.2,
+    });
+
+    // Auto-open user marker popup after map settles
+    const timer = setTimeout(() => {
+      userMarkerRef.current?.openPopup();
+    }, 600);
+
+    return () => clearTimeout(timer);
+  }, [locateTrigger, userLocation]);
 
   // 6. Smooth pan to selected vehicle or stop
   useEffect(() => {
@@ -585,6 +659,7 @@ export const MagicMap: React.FC<MagicMapProps> = ({
             selectedRouteId={selectedRouteId}
             selectedVehicleId={selectedVehicleId}
             selectedStopId={selectedStopId}
+            userLocation={userLocation}
             language={language}
             onSelectVehicle={onSelectVehicle}
             onSelectStop={onSelectStop}
@@ -759,6 +834,27 @@ export const MagicMap: React.FC<MagicMapProps> = ({
               <span className="hidden sm:inline">{language === 'ne' ? 'केन्द्र' : 'Center'}</span>
             </button>
           )}
+
+          {/* Locate User button in top toolbar */}
+          {onLocateUser && (
+            <button
+              onClick={onLocateUser}
+              disabled={isLocating}
+              className={`bg-white/95 dark:bg-slate-900/95 backdrop-blur-md px-3 py-2 rounded-xl shadow-md border text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
+                userLocation
+                  ? 'border-blue-500/60 text-blue-600 dark:text-blue-400 bg-blue-50/70 dark:bg-blue-950/40 ring-1 ring-blue-500/30'
+                  : 'border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800'
+              }`}
+              title={language === 'ne' ? 'मेरो स्थान पत्ता लगाउनुहोस्' : 'Locate My Position'}
+            >
+              <RiNavigationLine className={`w-4 h-4 text-blue-600 dark:text-blue-400 ${isLocating ? 'animate-spin' : ''}`} />
+              <span>
+                {isLocating
+                  ? (language === 'ne' ? 'खोज्दैछ...' : 'Locating...')
+                  : (language === 'ne' ? 'मेरो स्थान' : 'Locate')}
+              </span>
+            </button>
+          )}
         </div>
 
         {/* On-Map Quick Route Selector - Full width, invisible scrollbar */}
@@ -874,6 +970,25 @@ export const MagicMap: React.FC<MagicMapProps> = ({
           <span className="text-slate-700 dark:text-slate-300 text-[11px] font-medium">{language === 'ne' ? 'भरिभराउ (प्याक)' : 'Full'}</span>
         </div>
       </div>
+
+      {/* Floating GPS Action Button (Quick location tracking) */}
+      {onLocateUser && (
+        <button
+          onClick={onLocateUser}
+          disabled={isLocating}
+          className={`absolute bottom-20 right-3 sm:right-4 z-20 w-11 h-11 rounded-2xl shadow-xl border flex items-center justify-center transition-all cursor-pointer select-none ${
+            isLocating
+              ? 'bg-blue-600 text-white border-blue-600 ring-4 ring-blue-400/40'
+              : userLocation
+              ? 'bg-white dark:bg-[#1e1f20] text-blue-600 dark:text-blue-400 border-blue-500 ring-2 ring-blue-500/40 hover:scale-105'
+              : 'bg-white/95 dark:bg-[#1e1f20]/95 backdrop-blur-md text-gray-700 dark:text-gray-200 border-gray-200 dark:border-neutral-800 hover:bg-gray-100 dark:hover:bg-neutral-800 hover:scale-105'
+          }`}
+          title={language === 'ne' ? 'मेरो स्थान पत्ता लगाउनुहोस्' : 'Locate My Position'}
+          aria-label="Locate User"
+        >
+          <RiNavigationLine className={`w-5 h-5 ${isLocating ? 'animate-spin text-white' : userLocation ? 'text-blue-600 dark:text-blue-400' : 'text-gray-700 dark:text-gray-200'}`} />
+        </button>
+      )}
     </div>
   );
 };

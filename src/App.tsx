@@ -75,6 +75,20 @@ function AppContent() {
   const [selectedVehicleId, setSelectedVehicleId] = useState<string | null>(null);
   const [selectedStopId, setSelectedStopId] = useState<string | null>(null);
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
+  const [isLocating, setIsLocating] = useState<boolean>(false);
+  const [locateTrigger, setLocateTrigger] = useState<number>(0);
+  const [locationNotice, setLocationNotice] = useState<{
+    type: 'success' | 'info' | 'warn';
+    message: string;
+    details?: string;
+  } | null>(null);
+
+  // Auto-dismiss location notice after 5 seconds
+  useEffect(() => {
+    if (!locationNotice) return;
+    const timer = setTimeout(() => setLocationNotice(null), 5000);
+    return () => clearTimeout(timer);
+  }, [locationNotice]);
 
   // Apply Dark Mode class to documentElement
   useEffect(() => {
@@ -107,29 +121,67 @@ function AppContent() {
     return () => clearInterval(interval);
   }, [isSimulationRunning, simulationSpeedMultiplier]);
 
-  // User Geolocation Handler
-  const handleLocateUser = () => {
-    if ('geolocation' in navigator) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          const loc = {
-            lat: position.coords.latitude,
-            lng: position.coords.longitude,
-          };
-          setUserLocation(loc);
-          const nearest = findNearestStop(loc.lat, loc.lng, TRANSIT_STOPS);
-          setSelectedStopId(nearest.stop.id);
-        },
-        () => {
-          setUserLocation({ lat: 27.6798, lng: 84.4350 });
-          setSelectedStopId('stop-chaubiskothi');
-        },
-        { enableHighAccuracy: true, timeout: 5000 }
-      );
+  // Helper to commit location and trigger map centering
+  const applyLocation = (lat: number, lng: number, isRealGps: boolean) => {
+    setUserLocation({ lat, lng });
+    setLocateTrigger(Date.now());
+    setSelectedVehicleId(null);
+    setSelectedStopId(null);
+    setIsLocating(false);
+
+    const nearest = findNearestStop(lat, lng, TRANSIT_STOPS);
+    const nearestStopName = language === 'ne' ? nearest.stop.nameNe : nearest.stop.nameEn;
+    const distMeters = Math.round(nearest.distanceKm * 1000);
+
+    if (isRealGps) {
+      setLocationNotice({
+        type: 'success',
+        message: language === 'ne' ? 'तपाईंको जीपीएस स्थान पत्ता लाग्यो!' : 'Live GPS location detected!',
+        details: language === 'ne'
+          ? `नजिकैको म्याजिक बिसौनी: ${nearestStopName} (~${distMeters} मिटर)`
+          : `Nearest Magic Stop: ${nearestStopName} (~${distMeters}m away)`,
+      });
     } else {
-      setUserLocation({ lat: 27.6798, lng: 84.4350 });
-      setSelectedStopId('stop-chaubiskothi');
+      setLocationNotice({
+        type: 'info',
+        message: language === 'ne'
+          ? 'ब्राउजर जीपीएस अनुपलब्ध। भरतपुर चौबीसकोठी हब केन्द्र छानियो।'
+          : 'GPS restricted or unavailable in browser. Centered at Chaubiskothi hub.',
+        details: language === 'ne'
+          ? `नजिकैको म्याजिक बिसौनी: ${nearestStopName}`
+          : `Nearest Magic Stop: ${nearestStopName}`,
+      });
     }
+  };
+
+  // Robust User Geolocation Handler with multiple fallbacks
+  const handleLocateUser = () => {
+    setIsLocating(true);
+
+    if (!('geolocation' in navigator)) {
+      applyLocation(27.6798, 84.4350, false);
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        applyLocation(position.coords.latitude, position.coords.longitude, true);
+      },
+      () => {
+        // Fallback: try with low accuracy (faster, works indoors or in emulation)
+        navigator.geolocation.getCurrentPosition(
+          (pos) => {
+            applyLocation(pos.coords.latitude, pos.coords.longitude, true);
+          },
+          () => {
+            // Safe fallback to central Bharatpur passenger hub
+            applyLocation(27.6798, 84.4350, false);
+          },
+          { enableHighAccuracy: false, timeout: 6000, maximumAge: 60000 }
+        );
+      },
+      { enableHighAccuracy: true, timeout: 7000, maximumAge: 30000 }
+    );
   };
 
   const handleResetFleet = () => {
@@ -166,17 +218,35 @@ function AppContent() {
             setSelectedVehicleId(null);
           }}
           onResetFleet={handleResetFleet}
+          onLocateUser={handleLocateUser}
+          isLocating={isLocating}
+          locateTrigger={locateTrigger}
         />
 
-        {/* Locate User Button */}
-        <button
-          onClick={handleLocateUser}
-          className="absolute top-4 right-4 z-20 bg-white/95 dark:bg-[#1e1f20]/95 backdrop-blur-md hover:bg-gray-100 dark:hover:bg-neutral-800 px-3 py-2 rounded-xl shadow-md border border-gray-200 dark:border-neutral-800 text-gray-700 dark:text-gray-200 transition-colors cursor-pointer text-xs font-semibold flex items-center gap-1.5"
-          title={language === 'ne' ? 'मेरो स्थान' : 'Locate My Position'}
-        >
-          <RiNavigationLine className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
-          <span className="hidden sm:inline">{language === 'ne' ? 'मेरो स्थान' : 'Locate'}</span>
-        </button>
+        {/* Real-time Location Toast Notification */}
+        {locationNotice && (
+          <div className="absolute top-16 left-1/2 -translate-x-1/2 z-40 max-w-sm w-[calc(100vw-2rem)] bg-white/95 dark:bg-[#1e1f20]/95 backdrop-blur-md px-4 py-3 rounded-2xl shadow-2xl border border-gray-200 dark:border-neutral-800 flex items-start gap-3 transition-all">
+            <div className="w-8 h-8 rounded-xl bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0 mt-0.5">
+              <RiNavigationLine className="w-4 h-4" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="font-bold text-xs text-gray-900 dark:text-gray-100">
+                {locationNotice.message}
+              </div>
+              {locationNotice.details && (
+                <div className="text-[11px] text-gray-600 dark:text-gray-400 mt-0.5">
+                  {locationNotice.details}
+                </div>
+              )}
+            </div>
+            <button
+              onClick={() => setLocationNotice(null)}
+              className="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 rounded-lg cursor-pointer"
+            >
+              <RiCloseLine className="w-4 h-4" />
+            </button>
+          </div>
+        )}
 
         {/* Selected Vehicle Card */}
         {activeVehicle && (
