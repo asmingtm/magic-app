@@ -116,11 +116,11 @@ function AppContent() {
 
   // Map View Component
   const MapView = (
-    <div className="relative flex-1 flex flex-col min-h-[calc(100vh-112px)]">
+    <div className="relative flex-1 flex flex-col min-h-[calc(100vh-64px)]">
       {/* Interactive Map Viewport */}
       <div
         className="relative flex-1 w-full"
-        style={{ height: 'calc(100vh - 112px)', minHeight: '580px', width: '100%' }}
+        style={{ height: 'calc(100vh - 64px)', minHeight: '580px', width: '100%' }}
       >
         <MagicMap
           routes={TRANSIT_ROUTES}
