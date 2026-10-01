@@ -14,7 +14,9 @@ import {
   RiCheckLine,
   RiCloseLine,
   RiRouteLine,
-  RiNavigationLine
+  RiNavigationLine,
+  RiMapPin2Line,
+  RiCursorLine
 } from 'react-icons/ri';
 import { motion, AnimatePresence } from 'motion/react';
 
@@ -37,6 +39,10 @@ interface MagicMapProps {
   onLocateUser?: () => void;
   isLocating?: boolean;
   locateTrigger?: number;
+  onUpdateUserLocation?: (lat: number, lng: number) => void;
+  onOpenLocationModal?: () => void;
+  isTapToPinActive?: boolean;
+  onDisableTapToPin?: () => void;
 }
 
 export const MagicMap: React.FC<MagicMapProps> = ({
@@ -58,6 +64,10 @@ export const MagicMap: React.FC<MagicMapProps> = ({
   onLocateUser,
   isLocating = false,
   locateTrigger = 0,
+  onUpdateUserLocation,
+  onOpenLocationModal,
+  isTapToPinActive = false,
+  onDisableTapToPin,
 }) => {
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<L.Map | null>(null);
@@ -74,6 +84,26 @@ export const MagicMap: React.FC<MagicMapProps> = ({
     basemap === 'schematic' ? 'schematic' : 'leaflet'
   );
   const selectedRoute = routes.find((r) => r.id === selectedRouteId);
+
+  const isTapToPinActiveRef = useRef(isTapToPinActive);
+  useEffect(() => {
+    isTapToPinActiveRef.current = isTapToPinActive;
+  }, [isTapToPinActive]);
+
+  const onUpdateUserLocationRef = useRef(onUpdateUserLocation);
+  useEffect(() => {
+    onUpdateUserLocationRef.current = onUpdateUserLocation;
+  }, [onUpdateUserLocation]);
+
+  const onDisableTapToPinRef = useRef(onDisableTapToPin);
+  useEffect(() => {
+    onDisableTapToPinRef.current = onDisableTapToPin;
+  }, [onDisableTapToPin]);
+
+  const nearestUserStop = React.useMemo(() => {
+    if (!userLocation) return null;
+    return findNearestStop(userLocation.lat, userLocation.lng, stops).stop;
+  }, [userLocation, stops]);
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent | TouchEvent) => {
@@ -144,6 +174,14 @@ export const MagicMap: React.FC<MagicMapProps> = ({
     vehiclesLayerRef.current = vehiclesLayer;
     userLayerRef.current = userLayer;
     mapInstanceRef.current = map;
+
+    // Tap to Pin listener
+    map.on('click', (e: L.LeafletMouseEvent) => {
+      if (isTapToPinActiveRef.current && onUpdateUserLocationRef.current) {
+        onUpdateUserLocationRef.current(e.latlng.lat, e.latlng.lng);
+        onDisableTapToPinRef.current?.();
+      }
+    });
 
     // Auto-detect container resize to guarantee tile rendering
     const resizeObserver = new ResizeObserver(() => {
@@ -555,10 +593,17 @@ export const MagicMap: React.FC<MagicMapProps> = ({
       const userMarker = L.marker([userLocation.lat, userLocation.lng], { 
         icon: userIcon,
         zIndexOffset: 1000,
+        draggable: true,
+      });
+
+      userMarker.on('dragend', (e) => {
+        const marker = e.target;
+        const pos = marker.getLatLng();
+        onUpdateUserLocationRef.current?.(pos.lat, pos.lng);
       });
 
       const popupContent = `
-        <div class="p-2.5 min-w-[210px] text-slate-900">
+        <div class="p-2.5 min-w-[220px] text-slate-900">
           <div class="flex items-center gap-2 pb-1.5 border-b border-slate-100 mb-2">
             <span class="w-2.5 h-2.5 rounded-full bg-blue-600 animate-ping"></span>
             <span class="text-xs font-bold text-blue-700 uppercase tracking-wide">
@@ -578,13 +623,31 @@ export const MagicMap: React.FC<MagicMapProps> = ({
             </div>
           </div>
 
+          <div class="mt-2 pt-2 border-t border-slate-100 flex flex-col gap-1.5">
+            <button id="user-popup-change-chowk" class="w-full py-1.5 px-2.5 bg-blue-50 hover:bg-blue-100 text-blue-700 text-[11px] font-semibold rounded-lg flex items-center justify-center gap-1 transition-colors cursor-pointer border border-blue-200">
+              📍 ${language === 'ne' ? 'चितवन चोक / स्थान फेर्नुहोस्' : 'Change Location / Pick Chowk'}
+            </button>
+            <div class="text-[10px] text-slate-400 text-center">
+              ${language === 'ne' ? '💡 निलो पिनलाई तानेर (drag गरेर) पनि स्थान मिलाउन सकिन्छ' : '💡 You can also drag this pin anywhere'}
+            </div>
+          </div>
+
           <div class="text-[10px] text-slate-400 font-mono pt-1.5 border-t border-slate-100 flex items-center justify-between">
             <span>GPS: ${userLocation.lat.toFixed(4)}, ${userLocation.lng.toFixed(4)}</span>
           </div>
         </div>
       `;
 
-      userMarker.bindPopup(popupContent, { maxWidth: 260 });
+      userMarker.bindPopup(popupContent, { maxWidth: 280 });
+      userMarker.on('popupopen', () => {
+        const btn = document.getElementById('user-popup-change-chowk');
+        if (btn) {
+          btn.onclick = () => {
+            onOpenLocationModal?.();
+            userMarker.closePopup();
+          };
+        }
+      });
       layer.addLayer(userMarker);
       userMarkerRef.current = userMarker;
 
@@ -598,7 +661,7 @@ export const MagicMap: React.FC<MagicMapProps> = ({
       });
       layer.addLayer(accuracyCircle);
     }
-  }, [userLocation, language, stops]);
+  }, [userLocation, language, stops, onOpenLocationModal]);
 
   // Centering & flyTo effect when user triggers locate
   useEffect(() => {
@@ -823,11 +886,30 @@ export const MagicMap: React.FC<MagicMapProps> = ({
             </AnimatePresence>
           </div>
 
+          {/* Chitwan Location Selector Button */}
+          {onOpenLocationModal && (
+            <button
+              onClick={onOpenLocationModal}
+              className="bg-white/95 dark:bg-slate-900/95 backdrop-blur-md px-2.5 sm:px-3 py-2 rounded-xl shadow-md border border-slate-200 dark:border-slate-800 text-xs font-semibold flex items-center gap-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer text-slate-800 dark:text-slate-100"
+              title={language === 'ne' ? 'चितवनमा स्थान छान्नुहोस्' : 'Select Location in Chitwan'}
+            >
+              <RiMapPin2Line className="w-4 h-4 text-blue-600 dark:text-blue-400 shrink-0" />
+              <span className="font-semibold max-w-[85px] sm:max-w-[140px] truncate">
+                {nearestUserStop
+                  ? (language === 'ne' ? nearestUserStop.nameNe : nearestUserStop.nameEn)
+                  : (language === 'ne' ? 'चितवन स्थान' : 'Chitwan Location')}
+              </span>
+              <span className="text-[10px] bg-blue-100 dark:bg-blue-950 text-blue-700 dark:text-blue-300 px-1.5 py-0.5 rounded-md font-medium">
+                {language === 'ne' ? 'फेर्नुहोस्' : 'Change'}
+              </span>
+            </button>
+          )}
+
           {/* Center Map button */}
           {mapMode === 'leaflet' && (
             <button
               onClick={handleCenterBharatpur}
-              className="bg-white/95 dark:bg-slate-900/95 backdrop-blur-md hover:bg-slate-100 dark:hover:bg-slate-800 px-3 py-2 rounded-xl shadow-md border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-200 transition-colors cursor-pointer text-xs font-semibold flex items-center gap-1.5"
+              className="bg-white/95 dark:bg-slate-900/95 backdrop-blur-md hover:bg-slate-100 dark:hover:bg-slate-800 px-2.5 sm:px-3 py-2 rounded-xl shadow-md border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-200 transition-colors cursor-pointer text-xs font-semibold flex items-center gap-1.5"
               title={language === 'ne' ? 'भरतपुर केन्द्रित गर्नुहोस्' : 'Center on Bharatpur'}
             >
               <RiFocus2Line className="w-4 h-4 text-blue-600 dark:text-blue-400" />
@@ -840,7 +922,7 @@ export const MagicMap: React.FC<MagicMapProps> = ({
             <button
               onClick={onLocateUser}
               disabled={isLocating}
-              className={`bg-white/95 dark:bg-slate-900/95 backdrop-blur-md px-3 py-2 rounded-xl shadow-md border text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
+              className={`bg-white/95 dark:bg-slate-900/95 backdrop-blur-md px-2.5 sm:px-3 py-2 rounded-xl shadow-md border text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
                 userLocation
                   ? 'border-blue-500/60 text-blue-600 dark:text-blue-400 bg-blue-50/70 dark:bg-blue-950/40 ring-1 ring-blue-500/30'
                   : 'border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800'
@@ -856,6 +938,28 @@ export const MagicMap: React.FC<MagicMapProps> = ({
             </button>
           )}
         </div>
+
+        {/* Tap-to-Pin Prompt Floating Banner */}
+        {isTapToPinActive && (
+          <div className="w-full pointer-events-auto flex items-center justify-center pt-1 pb-1">
+            <div className="bg-blue-600 text-white px-4 py-2 rounded-2xl shadow-xl flex items-center gap-2.5 border border-white/20 animate-pulse text-xs font-bold">
+              <RiCursorLine className="w-4 h-4 shrink-0" />
+              <span>
+                {language === 'ne'
+                  ? '🎯 चितवनको नक्सामा जहाँ पनि थिचेर स्थान तोक्नुहोस्'
+                  : '🎯 Tap anywhere on the Chitwan map to place your pin'}
+              </span>
+              {onDisableTapToPin && (
+                <button
+                  onClick={onDisableTapToPin}
+                  className="ml-2 bg-white/25 hover:bg-white/35 px-2 py-0.5 rounded-lg cursor-pointer text-[11px] font-semibold"
+                >
+                  {language === 'ne' ? 'रद्द' : 'Cancel'}
+                </button>
+              )}
+            </div>
+          </div>
+        )}
 
         {/* On-Map Quick Route Selector - Full width, invisible scrollbar */}
         <div className="w-full overflow-x-auto no-scrollbar py-1 select-none pointer-events-auto flex items-center gap-1.5 scroll-smooth overscroll-contain">

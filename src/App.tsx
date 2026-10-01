@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { BrowserRouter, Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 import { Language, MagicVehicle } from './types/transit';
-import { TRANSIT_ROUTES, TRANSIT_STOPS, INITIAL_MAGIC_VEHICLES } from './data/bharatpurTransitData';
-import { advanceSimulatedVehicles, findNearestStop } from './services/gpsSimulator';
+import { TRANSIT_ROUTES, TRANSIT_STOPS, INITIAL_MAGIC_VEHICLES, BHARATPUR_CENTER } from './data/bharatpurTransitData';
+import { advanceSimulatedVehicles, findNearestStop, calculateDistanceKm } from './services/gpsSimulator';
 import { Navbar } from './components/Navbar';
 import { MagicMap } from './components/MagicMap';
 import { RoutePlanner } from './components/RoutePlanner';
@@ -10,11 +10,15 @@ import { RoutesList } from './components/RoutesList';
 import { LiveFleetTracker } from './components/LiveFleetTracker';
 import { FaresPage } from './pages/FaresPage';
 import { SettingsPage, ThemeMode, BasemapProvider } from './pages/SettingsPage';
+import { ChitwanLocationModal } from './components/ChitwanLocationModal';
 import { 
   RiNavigationLine, 
   RiCloseLine, 
   RiUser3Line, 
   RiMapPin2Fill, 
+  RiMapPin2Line,
+  RiAlertLine,
+  RiCursorLine,
   RiArrowRightLine, 
   RiSpeedLine, 
   RiGroupLine 
@@ -74,7 +78,19 @@ function AppContent() {
   const [selectedRouteId, setSelectedRouteId] = useState<string | null>(null);
   const [selectedVehicleId, setSelectedVehicleId] = useState<string | null>(null);
   const [selectedStopId, setSelectedStopId] = useState<string | null>(null);
-  const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
+  const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(() => {
+    const saved = localStorage.getItem('magictrack_user_location');
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (parsed.lat && parsed.lng) return parsed;
+      } catch (e) {}
+    }
+    // Default to central Bharatpur passenger hub (Chaubiskothi) so user is immediately anchored in Chitwan
+    return { lat: 27.6798, lng: 84.4350 };
+  });
+  const [showLocationModal, setShowLocationModal] = useState<boolean>(false);
+  const [isTapToPinActive, setIsTapToPinActive] = useState<boolean>(false);
   const [isLocating, setIsLocating] = useState<boolean>(false);
   const [locateTrigger, setLocateTrigger] = useState<number>(0);
   const [locationNotice, setLocationNotice] = useState<{
@@ -83,10 +99,10 @@ function AppContent() {
     details?: string;
   } | null>(null);
 
-  // Auto-dismiss location notice after 5 seconds
+  // Auto-dismiss location notice after 6 seconds
   useEffect(() => {
     if (!locationNotice) return;
-    const timer = setTimeout(() => setLocationNotice(null), 5000);
+    const timer = setTimeout(() => setLocationNotice(null), 6000);
     return () => clearTimeout(timer);
   }, [locationNotice]);
 
@@ -122,66 +138,139 @@ function AppContent() {
   }, [isSimulationRunning, simulationSpeedMultiplier]);
 
   // Helper to commit location and trigger map centering
-  const applyLocation = (lat: number, lng: number, isRealGps: boolean) => {
-    setUserLocation({ lat, lng });
+  const applyLocation = (
+    lat: number,
+    lng: number,
+    isRealGps: boolean,
+    customName?: { en: string; ne: string }
+  ) => {
+    const loc = { lat, lng };
+    setUserLocation(loc);
+    localStorage.setItem('magictrack_user_location', JSON.stringify(loc));
     setLocateTrigger(Date.now());
     setSelectedVehicleId(null);
     setSelectedStopId(null);
     setIsLocating(false);
 
     const nearest = findNearestStop(lat, lng, TRANSIT_STOPS);
-    const nearestStopName = language === 'ne' ? nearest.stop.nameNe : nearest.stop.nameEn;
+    const stopName = customName
+      ? (language === 'ne' ? customName.ne : customName.en)
+      : (language === 'ne' ? nearest.stop.nameNe : nearest.stop.nameEn);
     const distMeters = Math.round(nearest.distanceKm * 1000);
 
     if (isRealGps) {
       setLocationNotice({
         type: 'success',
-        message: language === 'ne' ? 'तपाईंको जीपीएस स्थान पत्ता लाग्यो!' : 'Live GPS location detected!',
+        message: language === 'ne' ? 'चितवन जीपीएस स्थान पत्ता लाग्यो!' : 'Live GPS location detected in Chitwan!',
         details: language === 'ne'
-          ? `नजिकैको म्याजिक बिसौनी: ${nearestStopName} (~${distMeters} मिटर)`
-          : `Nearest Magic Stop: ${nearestStopName} (~${distMeters}m away)`,
+          ? `नजिकैको म्याजिक बिसौनी: ${stopName} (~${distMeters} मिटर)`
+          : `Nearest Magic Stop: ${stopName} (~${distMeters}m away)`,
       });
     } else {
       setLocationNotice({
         type: 'info',
         message: language === 'ne'
-          ? 'ब्राउजर जीपीएस अनुपलब्ध। भरतपुर चौबीसकोठी हब केन्द्र छानियो।'
-          : 'GPS restricted or unavailable in browser. Centered at Chaubiskothi hub.',
+          ? `स्थान छानियो: ${stopName}`
+          : `Location set: ${stopName}`,
         details: language === 'ne'
-          ? `नजिकैको म्याजिक बिसौनी: ${nearestStopName}`
-          : `Nearest Magic Stop: ${nearestStopName}`,
+          ? `नजिकैको म्याजिक बिसौनी: ${nearest.stop.nameNe} (~${distMeters} मिटर)`
+          : `Nearest Magic Stop: ${nearest.stop.nameEn} (~${distMeters}m away)`,
       });
     }
   };
 
-  // Robust User Geolocation Handler with multiple fallbacks
+  // Robust User Geolocation Handler with Kathmandu / ISP out-of-Chitwan detection
   const handleLocateUser = () => {
     setIsLocating(true);
 
     if (!('geolocation' in navigator)) {
       applyLocation(27.6798, 84.4350, false);
+      setShowLocationModal(true);
       return;
     }
 
+    const processCoords = (lat: number, lng: number) => {
+      // Calculate distance from central Bharatpur
+      const distFromBharatpur = calculateDistanceKm(lat, lng, BHARATPUR_CENTER[0], BHARATPUR_CENTER[1]);
+
+      // Kathmandu is ~95km away (longitude > 85.0). All Nepal ISPs route IP geolocation to Kathmandu!
+      // If coordinates are outside Chitwan transit zone (> 35 km away):
+      if (distFromBharatpur > 35) {
+        setIsLocating(false);
+        // Do NOT send the map to Kathmandu! Keep in Chitwan (saved location or Chaubiskothi)
+        const chitwanLat = userLocation?.lat || 27.6798;
+        const chitwanLng = userLocation?.lng || 84.4350;
+        applyLocation(chitwanLat, chitwanLng, false);
+        setLocateTrigger(Date.now());
+
+        // Warn user and open the Chitwan location selector modal
+        setLocationNotice({
+          type: 'warn',
+          message: language === 'ne'
+            ? 'इन्टरनेटले काठमाडौं देखायो (~९५ किमी टाढा)!'
+            : 'Browser IP routed to Kathmandu (~95km away)!',
+          details: language === 'ne'
+            ? 'नेपालका धेरैजसो ISP ले काठमाडौं देखाउँछन्। म्याजिक एप चितवनका लागि भएकाले स्थान चितवनमा राखिएको छ। तल आफ्नो चोक छान्नुहोस्।'
+            : 'Nepal ISP GeoIP placed you in Kathmandu. Position kept in Chitwan transit zone. Choose your Chowk below.',
+        });
+        setShowLocationModal(true);
+        return;
+      }
+
+      // Valid GPS inside Chitwan!
+      applyLocation(lat, lng, true);
+    };
+
     navigator.geolocation.getCurrentPosition(
-      (position) => {
-        applyLocation(position.coords.latitude, position.coords.longitude, true);
+      (pos) => {
+        processCoords(pos.coords.latitude, pos.coords.longitude);
       },
       () => {
         // Fallback: try with low accuracy (faster, works indoors or in emulation)
         navigator.geolocation.getCurrentPosition(
           (pos) => {
-            applyLocation(pos.coords.latitude, pos.coords.longitude, true);
+            processCoords(pos.coords.latitude, pos.coords.longitude);
           },
           () => {
-            // Safe fallback to central Bharatpur passenger hub
-            applyLocation(27.6798, 84.4350, false);
+            setIsLocating(false);
+            const chitwanLat = userLocation?.lat || 27.6798;
+            const chitwanLng = userLocation?.lng || 84.4350;
+            applyLocation(chitwanLat, chitwanLng, false);
+            setLocationNotice({
+              type: 'info',
+              message: language === 'ne'
+                ? 'जीपीएस अनुपलब्ध। स्थान भरतपुर चौबिसकोठीमा राखियो।'
+                : 'GPS unavailable. Position set to Bharatpur Chaubiskothi hub.',
+              details: language === 'ne'
+                ? 'आफ्नो चोक छान्न वा नक्सामा थिच्न सक्नुहुन्छ।'
+                : 'You can tap on map or pick your exact chowk anytime.',
+            });
+            setShowLocationModal(true);
           },
           { enableHighAccuracy: false, timeout: 6000, maximumAge: 60000 }
         );
       },
       { enableHighAccuracy: true, timeout: 7000, maximumAge: 30000 }
     );
+  };
+
+  const handleUpdateUserLocation = (lat: number, lng: number) => {
+    applyLocation(lat, lng, false);
+  };
+
+  const handleSelectChitwanChowk = (lat: number, lng: number, nameEn: string, nameNe: string) => {
+    applyLocation(lat, lng, false, { en: nameEn, ne: nameNe });
+  };
+
+  const handleActivateTapToPin = () => {
+    setIsTapToPinActive(true);
+    setLocationNotice({
+      type: 'info',
+      message: language === 'ne' ? '🎯 नक्सामा जहाँ पनि थिच्नुहोस्' : '🎯 Tap anywhere on the Chitwan map',
+      details: language === 'ne'
+        ? 'नक्सामा जहाँ थिच्नुहुन्छ, त्यहीँ तपाईंको निलो पिन सर्नेछ।'
+        : 'Your blue user pin will move directly to the tapped coordinate.',
+    });
   };
 
   const handleResetFleet = () => {
@@ -221,23 +310,48 @@ function AppContent() {
           onLocateUser={handleLocateUser}
           isLocating={isLocating}
           locateTrigger={locateTrigger}
+          onUpdateUserLocation={handleUpdateUserLocation}
+          onOpenLocationModal={() => setShowLocationModal(true)}
+          isTapToPinActive={isTapToPinActive}
+          onDisableTapToPin={() => setIsTapToPinActive(false)}
         />
 
         {/* Real-time Location Toast Notification */}
         {locationNotice && (
-          <div className="absolute top-16 left-1/2 -translate-x-1/2 z-40 max-w-sm w-[calc(100vw-2rem)] bg-white/95 dark:bg-[#1e1f20]/95 backdrop-blur-md px-4 py-3 rounded-2xl shadow-2xl border border-gray-200 dark:border-neutral-800 flex items-start gap-3 transition-all">
-            <div className="w-8 h-8 rounded-xl bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0 mt-0.5">
-              <RiNavigationLine className="w-4 h-4" />
+          <div className={`absolute top-16 left-1/2 -translate-x-1/2 z-40 max-w-sm w-[calc(100vw-2rem)] bg-white/95 dark:bg-[#1e1f20]/95 backdrop-blur-md px-4 py-3 rounded-2xl shadow-2xl border flex items-start gap-3 transition-all ${
+            locationNotice.type === 'warn'
+              ? 'border-amber-300 dark:border-amber-700/70 ring-2 ring-amber-400/20'
+              : 'border-gray-200 dark:border-neutral-800'
+          }`}>
+            <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 mt-0.5 ${
+              locationNotice.type === 'warn'
+                ? 'bg-amber-100 dark:bg-amber-950/70 text-amber-600 dark:text-amber-400'
+                : 'bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400'
+            }`}>
+              {locationNotice.type === 'warn' ? (
+                <RiAlertLine className="w-4 h-4" />
+              ) : (
+                <RiNavigationLine className="w-4 h-4" />
+              )}
             </div>
             <div className="flex-1 min-w-0">
               <div className="font-bold text-xs text-gray-900 dark:text-gray-100">
                 {locationNotice.message}
               </div>
               {locationNotice.details && (
-                <div className="text-[11px] text-gray-600 dark:text-gray-400 mt-0.5">
+                <div className="text-[11px] text-gray-600 dark:text-gray-400 mt-0.5 leading-relaxed">
                   {locationNotice.details}
                 </div>
               )}
+              <div className="mt-2 flex items-center gap-2">
+                <button
+                  onClick={() => setShowLocationModal(true)}
+                  className="px-2.5 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-[11px] font-semibold flex items-center gap-1 cursor-pointer transition-colors shadow-xs"
+                >
+                  <RiMapPin2Line className="w-3 h-3" />
+                  <span>{language === 'ne' ? 'चितवन चोक रोज्नुहोस्' : 'Pick Chitwan Chowk'}</span>
+                </button>
+              </div>
             </div>
             <button
               onClick={() => setLocationNotice(null)}
@@ -399,6 +513,7 @@ function AppContent() {
                 onSelectRoute={(id) => setSelectedRouteId(id)}
                 onSelectVehicle={(id) => setSelectedVehicleId(id)}
                 onNavigateToMap={() => navigate('/')}
+                onOpenLocationModal={() => setShowLocationModal(true)}
               />
             }
           />
@@ -415,6 +530,7 @@ function AppContent() {
                 onSelectRoute={(id) => setSelectedRouteId(id)}
                 onSelectVehicle={(id) => setSelectedVehicleId(id)}
                 onNavigateToMap={() => navigate('/')}
+                onOpenLocationModal={() => setShowLocationModal(true)}
               />
             }
           />
@@ -470,6 +586,19 @@ function AppContent() {
           <Route path="*" element={MapView} />
         </Routes>
       </main>
+
+      {/* Chitwan Location Selector Modal */}
+      <ChitwanLocationModal
+        isOpen={showLocationModal}
+        onClose={() => setShowLocationModal(false)}
+        stops={TRANSIT_STOPS}
+        currentLocation={userLocation}
+        onSelectLocation={handleSelectChitwanChowk}
+        onActivateTapToPin={handleActivateTapToPin}
+        onRetryGps={handleLocateUser}
+        isLocating={isLocating}
+        language={language}
+      />
     </div>
   );
 }

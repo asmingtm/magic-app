@@ -23,6 +23,7 @@ interface RoutePlannerProps {
   onSelectRoute: (routeId: string) => void;
   onSelectVehicle: (vehicleId: string) => void;
   onNavigateToMap: () => void;
+  onOpenLocationModal?: () => void;
 }
 
 export const RoutePlanner: React.FC<RoutePlannerProps> = ({
@@ -35,6 +36,7 @@ export const RoutePlanner: React.FC<RoutePlannerProps> = ({
   onSelectRoute,
   onSelectVehicle,
   onNavigateToMap,
+  onOpenLocationModal,
 }) => {
   const [fromStopId, setFromStopId] = useState<string>('stop-chaubiskothi');
   const [toStopId, setToStopId] = useState<string>('stop-pulchowk');
@@ -133,15 +135,28 @@ export const RoutePlanner: React.FC<RoutePlannerProps> = ({
               <label className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
                 {language === 'ne' ? 'कहाँबाट:' : 'From:'}
               </label>
-              <button
-                type="button"
-                onClick={onLocateUser}
-                title={language === 'ne' ? 'मेरो हालको स्थान पत्ता लगाउनुहोस्' : 'Detect my location via GPS'}
-                className="text-[11px] font-semibold text-blue-600 dark:text-blue-400 hover:text-blue-700 flex items-center gap-1 cursor-pointer"
-              >
-                <RiNavigationLine className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
-                <span>{language === 'ne' ? 'मेरो जीपीएस' : 'My Location'}</span>
-              </button>
+              <div className="flex items-center gap-2">
+                {onOpenLocationModal && (
+                  <button
+                    type="button"
+                    onClick={onOpenLocationModal}
+                    title={language === 'ne' ? 'चितवन चोक रोज्नुहोस्' : 'Pick Chitwan Chowk'}
+                    className="text-[11px] font-semibold text-slate-600 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 flex items-center gap-1 cursor-pointer bg-slate-100 dark:bg-neutral-800 px-2 py-0.5 rounded-md transition-colors"
+                  >
+                    <RiMapPin2Line className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
+                    <span>{language === 'ne' ? 'चोक छान्नुहोस्' : 'Pick Chowk'}</span>
+                  </button>
+                )}
+                <button
+                  type="button"
+                  onClick={onLocateUser}
+                  title={language === 'ne' ? 'मेरो हालको स्थान पत्ता लगाउनुहोस्' : 'Detect my location via GPS'}
+                  className="text-[11px] font-semibold text-blue-600 dark:text-blue-400 hover:text-blue-700 flex items-center gap-1 cursor-pointer"
+                >
+                  <RiNavigationLine className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
+                  <span>{language === 'ne' ? 'मेरो जीपीएस' : 'My Location'}</span>
+                </button>
+              </div>
             </div>
             <CustomSelect
               value={fromStopId}
