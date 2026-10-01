@@ -11,6 +11,7 @@ import {
   RiArrowRightLine, 
   RiMapPin2Line 
 } from 'react-icons/ri';
+import { CustomSelect } from './CustomSelect';
 
 interface RoutePlannerProps {
   stops: TransitStop[];
@@ -39,6 +40,16 @@ export const RoutePlanner: React.FC<RoutePlannerProps> = ({
 
   const fromStop = useMemo(() => stops.find((s) => s.id === fromStopId) || stops[0], [stops, fromStopId]);
   const toStop = useMemo(() => stops.find((s) => s.id === toStopId) || stops[1], [stops, toStopId]);
+
+  const stopOptions = useMemo(() => {
+    return stops.map((s) => ({
+      value: s.id,
+      label: language === 'ne' ? s.nameNe : s.nameEn,
+      sublabel: language === 'ne' ? s.landmarkNe : s.landmarkEn,
+      badge: s.isMajorHub ? (language === 'ne' ? 'हब' : 'Hub') : undefined,
+      badgeColor: s.isMajorHub ? '#2563eb' : undefined,
+    }));
+  }, [stops, language]);
 
   // Swap From & To
   const handleSwapStops = () => {
@@ -121,17 +132,14 @@ export const RoutePlanner: React.FC<RoutePlannerProps> = ({
                 <span>{language === 'ne' ? 'मेरो जीपीएस' : 'My Location'}</span>
               </button>
             </div>
-            <select
+            <CustomSelect
               value={fromStopId}
-              onChange={(e) => setFromStopId(e.target.value)}
-              className="w-full bg-gray-50 dark:bg-neutral-900 border border-gray-300 dark:border-neutral-700 rounded-xl px-3.5 py-2.5 text-sm font-medium text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            >
-              {stops.map((stop) => (
-                <option key={stop.id} value={stop.id} className="bg-white dark:bg-[#1e1f20] text-gray-900 dark:text-gray-100">
-                  {language === 'ne' ? stop.nameNe : stop.nameEn} {stop.isMajorHub ? '(Hub)' : ''}
-                </option>
-              ))}
-            </select>
+              onChange={setFromStopId}
+              options={stopOptions}
+              searchable={true}
+              searchPlaceholder={language === 'ne' ? 'चोक वा बिसौनी खोज्नुहोस्...' : 'Search stop or chowk...'}
+              ariaLabel={language === 'ne' ? 'कहाँबाट' : 'From stop'}
+            />
             <div className="text-[11px] text-gray-500 dark:text-gray-400 truncate flex items-center gap-1">
               <RiMapPin2Line className="w-3.5 h-3.5 text-gray-400 shrink-0" />
               <span>{language === 'ne' ? fromStop.landmarkNe : fromStop.landmarkEn}</span>
@@ -155,17 +163,14 @@ export const RoutePlanner: React.FC<RoutePlannerProps> = ({
             <label className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
               {language === 'ne' ? 'कहाँ जाने:' : 'To:'}
             </label>
-            <select
+            <CustomSelect
               value={toStopId}
-              onChange={(e) => setToStopId(e.target.value)}
-              className="w-full bg-gray-50 dark:bg-neutral-900 border border-gray-300 dark:border-neutral-700 rounded-xl px-3.5 py-2.5 text-sm font-medium text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            >
-              {stops.map((stop) => (
-                <option key={stop.id} value={stop.id} className="bg-white dark:bg-[#1e1f20] text-gray-900 dark:text-gray-100">
-                  {language === 'ne' ? stop.nameNe : stop.nameEn} {stop.isMajorHub ? '(Hub)' : ''}
-                </option>
-              ))}
-            </select>
+              onChange={setToStopId}
+              options={stopOptions}
+              searchable={true}
+              searchPlaceholder={language === 'ne' ? 'चोक वा बिसौनी खोज्नुहोस्...' : 'Search stop or chowk...'}
+              ariaLabel={language === 'ne' ? 'कहाँ जाने' : 'To stop'}
+            />
             <div className="text-[11px] text-gray-500 dark:text-gray-400 truncate flex items-center gap-1">
               <RiMapPin2Line className="w-3.5 h-3.5 text-gray-400 shrink-0" />
               <span>{language === 'ne' ? toStop.landmarkNe : toStop.landmarkEn}</span>

@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@custom-variant dark (&:where(.dark, .dark *));
 @import "leaflet/dist/leaflet.css";
 
 @layer base {
@@ -12,19 +13,31 @@
 }
 
 /* Custom leaflet marker and popup styles */
+/* Custom leaflet marker and popup styles */
 .leaflet-container {
   width: 100% !important;
   height: 100% !important;
-  min-height: 550px !important;
+  min-height: 100% !important;
   font-family: inherit;
   background-color: #e2e8f0;
   position: relative;
   isolation: isolate !important; /* CRITICAL: prevents Leaflet z-index from bleeding over modals */
   z-index: 1 !important;
+  touch-action: pan-x pan-y;
 }
 
 .dark .leaflet-container {
   background-color: #131314;
+}
+
+/* Ensure Leaflet div icons have transparent background and no borders across all mobile browsers */
+.leaflet-div-icon,
+.stop-marker-icon,
+.magic-vehicle-marker,
+.user-location-marker {
+  background: transparent !important;
+  border: none !important;
+  overflow: visible !important;
 }
 
 /* Restrict all Leaflet internal pane and control z-indexes */
@@ -102,4 +115,15 @@
 }
 ::-webkit-scrollbar-thumb:hover {
   background: rgba(100, 116, 139, 0.6);
+}
+
+/* Invisible scrollbar utility */
+.no-scrollbar::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+.no-scrollbar {
+  -ms-overflow-style: none !important;
+  scrollbar-width: none !important;
 }

@@ -8,6 +8,7 @@ import {
   RiGroupLine, 
   RiArrowRightLine 
 } from 'react-icons/ri';
+import { CustomSelect, SelectOption } from './CustomSelect';
 
 interface LiveFleetTrackerProps {
   vehicles: MagicVehicle[];
@@ -42,6 +43,27 @@ export const LiveFleetTracker: React.FC<LiveFleetTrackerProps> = ({
       return matchesSearch && matchesRoute && matchesOccupancy;
     });
   }, [vehicles, searchQuery, selectedRouteFilter, selectedOccupancyFilter]);
+
+  const routeFilterOptions: SelectOption[] = useMemo(() => {
+    return [
+      { value: 'all', label: language === 'ne' ? 'सबै रुटहरू' : 'All Routes' },
+      ...routes.map((r) => ({
+        value: r.id,
+        label: `Route ${r.routeNumber} (${language === 'ne' ? r.nameNe : r.nameEn})`,
+        badge: `R${r.routeNumber}`,
+        badgeColor: r.color,
+      })),
+    ];
+  }, [routes, language]);
+
+  const occupancyFilterOptions: SelectOption[] = useMemo(() => {
+    return [
+      { value: 'all', label: language === 'ne' ? 'सबै सिट स्थिति' : 'All Occupancy' },
+      { value: 'empty', label: language === 'ne' ? 'सिट खाली' : 'Seats Available' },
+      { value: 'moderate', label: language === 'ne' ? 'केही सिट' : 'Few Seats' },
+      { value: 'full', label: language === 'ne' ? 'भरिभराउ / प्याक' : 'Full' },
+    ];
+  }, [language]);
 
   // Aggregate stats
   const totalSeatsOpen = vehicles.reduce((sum, v) => sum + v.availableSeats, 0);
@@ -145,30 +167,24 @@ export const LiveFleetTracker: React.FC<LiveFleetTrackerProps> = ({
 
         <div className="flex flex-wrap items-center gap-2 w-full md:w-auto">
           {/* Route filter */}
-          <select
-            value={selectedRouteFilter}
-            onChange={(e) => setSelectedRouteFilter(e.target.value)}
-            className="bg-gray-50 dark:bg-neutral-900 border border-gray-200 dark:border-neutral-700 rounded-xl px-3 py-2 text-xs font-semibold text-gray-700 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            <option value="all">{language === 'ne' ? 'सबै रुटहरू' : 'All Routes'}</option>
-            {routes.map((r) => (
-              <option key={r.id} value={r.id}>
-                Route {r.routeNumber} ({language === 'ne' ? r.nameNe : r.nameEn})
-              </option>
-            ))}
-          </select>
+          <div className="w-full sm:w-56">
+            <CustomSelect
+              value={selectedRouteFilter}
+              onChange={setSelectedRouteFilter}
+              options={routeFilterOptions}
+              ariaLabel={language === 'ne' ? 'रुट फिल्टर' : 'Route filter'}
+            />
+          </div>
 
           {/* Occupancy filter */}
-          <select
-            value={selectedOccupancyFilter}
-            onChange={(e) => setSelectedOccupancyFilter(e.target.value)}
-            className="bg-gray-50 dark:bg-neutral-900 border border-gray-200 dark:border-neutral-700 rounded-xl px-3 py-2 text-xs font-semibold text-gray-700 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            <option value="all">{language === 'ne' ? 'सबै सिट स्थिति' : 'All Occupancy'}</option>
-            <option value="empty">{language === 'ne' ? 'सिट खाली' : 'Seats Available'}</option>
-            <option value="moderate">{language === 'ne' ? 'केही सिट' : 'Few Seats'}</option>
-            <option value="full">{language === 'ne' ? 'भरिभराउ / प्याक' : 'Full'}</option>
-          </select>
+          <div className="w-full sm:w-44">
+            <CustomSelect
+              value={selectedOccupancyFilter}
+              onChange={setSelectedOccupancyFilter}
+              options={occupancyFilterOptions}
+              ariaLabel={language === 'ne' ? 'सिट स्थिति' : 'Occupancy filter'}
+            />
+          </div>
         </div>
       </div>
 

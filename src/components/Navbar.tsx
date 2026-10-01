@@ -8,14 +8,19 @@ import {
   RiBus2Line, 
   RiDashboard3Line, 
   RiCalculatorLine, 
-  RiSettings3Line 
+  RiSettings3Line,
+  RiSunLine,
+  RiMoonLine
 } from 'react-icons/ri';
+import { motion, AnimatePresence } from 'motion/react';
 
 interface NavbarProps {
   language: Language;
+  isDark?: boolean;
+  onToggleTheme?: () => void;
 }
 
-export const Navbar: React.FC<NavbarProps> = ({ language }) => {
+export const Navbar: React.FC<NavbarProps> = ({ language, isDark = false, onToggleTheme }) => {
   const location = useLocation();
   const currentPath = location.pathname;
 
@@ -124,6 +129,32 @@ export const Navbar: React.FC<NavbarProps> = ({ language }) => {
             <RiSettings3Line className="w-4 h-4" />
             <span className="hidden sm:inline capitalize">{language === 'ne' ? 'सेटिङ' : 'Settings'}</span>
           </Link>
+
+          {onToggleTheme && (
+            <button
+              type="button"
+              onClick={onToggleTheme}
+              className="p-1.5 rounded-lg text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-200/70 dark:hover:bg-neutral-800 transition-colors cursor-pointer ml-0.5"
+              title={isDark ? (language === 'ne' ? 'उज्यालो मोड' : 'Switch to Light Mode') : (language === 'ne' ? 'गाढा मोड' : 'Switch to Dark Mode')}
+              aria-label="Toggle theme"
+            >
+              <AnimatePresence mode="wait" initial={false}>
+                <motion.div
+                  key={isDark ? 'dark' : 'light'}
+                  initial={{ rotate: -90, opacity: 0, scale: 0.8 }}
+                  animate={{ rotate: 0, opacity: 1, scale: 1 }}
+                  exit={{ rotate: 90, opacity: 0, scale: 0.8 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  {isDark ? (
+                    <RiSunLine className="w-4 h-4 text-amber-400" />
+                  ) : (
+                    <RiMoonLine className="w-4 h-4 text-gray-700" />
+                  )}
+                </motion.div>
+              </AnimatePresence>
+            </button>
+          )}
         </nav>
       </div>
     </header>

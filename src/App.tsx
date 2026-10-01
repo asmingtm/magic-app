@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { BrowserRouter, Routes, Route, useNavigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 import { Language, MagicVehicle } from './types/transit';
 import { TRANSIT_ROUTES, TRANSIT_STOPS, INITIAL_MAGIC_VEHICLES } from './data/bharatpurTransitData';
 import { advanceSimulatedVehicles, findNearestStop } from './services/gpsSimulator';
@@ -22,11 +22,34 @@ import {
 
 function AppContent() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const isMapPage = location.pathname === '/' || location.pathname === '/map';
 
   // Theme state with local persistence
   const [theme, setTheme] = useState<ThemeMode>(() => {
     return (localStorage.getItem('magictrack_theme') as ThemeMode) || 'light';
   });
+
+  // System dark preference listener
+  const [systemIsDark, setSystemIsDark] = useState<boolean>(() => {
+    return typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: dark)').matches;
+  });
+
+  useEffect(() => {
+    const media = window.matchMedia('(prefers-color-scheme: dark)');
+    const listener = (e: MediaQueryListEvent) => setSystemIsDark(e.matches);
+    media.addEventListener('change', listener);
+    return () => media.removeEventListener('change', listener);
+  }, []);
+
+  const isDark = theme === 'dark' || (theme === 'system' && systemIsDark);
+
+  const handleToggleTheme = () => {
+    setTheme((prev) => {
+      const next = isDark ? 'light' : 'dark';
+      return next;
+    });
+  };
 
   // Language state with local persistence
   const [language, setLanguage] = useState<Language>(() => {
@@ -54,17 +77,13 @@ function AppContent() {
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
 
   // Apply Dark Mode class to documentElement
-  const isDark = useMemo(() => {
-    if (theme === 'dark') return true;
-    if (theme === 'light') return false;
-    return window.matchMedia('(prefers-color-scheme: dark)').matches;
-  }, [theme]);
-
   useEffect(() => {
     if (isDark) {
       document.documentElement.classList.add('dark');
+      document.documentElement.style.colorScheme = 'dark';
     } else {
       document.documentElement.classList.remove('dark');
+      document.documentElement.style.colorScheme = 'light';
     }
     localStorage.setItem('magictrack_theme', theme);
   }, [theme, isDark]);
@@ -121,10 +140,10 @@ function AppContent() {
   const activeVehicle = vehicles.find((v) => v.id === selectedVehicleId);
   const activeStop = TRANSIT_STOPS.find((s) => s.id === selectedStopId);
 
-  // Map View Component - Full height viewport below navbar with no footer
+  // Map View Component - Full height viewport below navbar with no unintended scroll
   const MapView = (
-    <div className="relative flex-1 flex flex-col h-[calc(100vh-56px)] sm:h-[calc(100vh-64px)] w-full overflow-hidden">
-      <div className="relative w-full h-full">
+    <div className="relative flex-1 flex flex-col h-[calc(100dvh-56px)] sm:h-[calc(100dvh-64px)] w-full overflow-hidden">
+      <div className="relative w-full h-full flex-1 overflow-hidden">
         <MagicMap
           routes={TRANSIT_ROUTES}
           stops={TRANSIT_STOPS}
@@ -290,10 +309,10 @@ function AppContent() {
   );
 
   return (
-    <div className="min-h-screen bg-[#f8f9fa] dark:bg-[#131314] flex flex-col text-gray-900 dark:text-gray-100 font-sans transition-colors">
-      <Navbar language={language} />
+    <div className={`bg-[#f8f9fa] dark:bg-[#131314] flex flex-col text-gray-900 dark:text-gray-100 font-sans transition-colors ${isMapPage ? 'h-[100dvh] max-h-[100dvh] overflow-hidden' : 'min-h-screen'}`}>
+      <Navbar language={language} isDark={isDark} onToggleTheme={handleToggleTheme} />
 
-      <main className="flex-1 flex flex-col">
+      <main className={`flex-1 flex flex-col ${isMapPage ? 'overflow-hidden' : ''}`}>
         <Routes>
           <Route path="/" element={MapView} />
           <Route path="/map" element={MapView} />

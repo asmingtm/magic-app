@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { TransitStop, TransitRoute, Language } from '../types/transit';
 import { calculateDistanceKm, toNepaliNumber } from '../services/gpsSimulator';
 import { 
@@ -7,6 +7,7 @@ import {
   RiGraduationCapLine, 
   RiInformationLine 
 } from 'react-icons/ri';
+import { CustomSelect } from '../components/CustomSelect';
 
 interface FaresPageProps {
   stops: TransitStop[];
@@ -25,6 +26,16 @@ export const FaresPage: React.FC<FaresPageProps> = ({
 
   const fromStop = stops.find((s) => s.id === fromStopId) || stops[0];
   const toStop = stops.find((s) => s.id === toStopId) || stops[1];
+
+  const stopOptions = useMemo(() => {
+    return stops.map((s) => ({
+      value: s.id,
+      label: language === 'ne' ? s.nameNe : s.nameEn,
+      sublabel: language === 'ne' ? s.landmarkNe : s.landmarkEn,
+      badge: s.isMajorHub ? (language === 'ne' ? 'हब' : 'Hub') : undefined,
+      badgeColor: s.isMajorHub ? '#2563eb' : undefined,
+    }));
+  }, [stops, language]);
 
   const straightDist = calculateDistanceKm(fromStop.lat, fromStop.lng, toStop.lat, toStop.lng);
   const roadDist = Math.max(1.0, Number((straightDist * 1.25).toFixed(1)));
@@ -60,34 +71,28 @@ export const FaresPage: React.FC<FaresPageProps> = ({
             <label className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider block mb-1">
               {language === 'ne' ? 'शुरुवाती चोक:' : 'Boarding Stop:'}
             </label>
-            <select
+            <CustomSelect
               value={fromStopId}
-              onChange={(e) => setFromStopId(e.target.value)}
-              className="w-full bg-gray-50 dark:bg-neutral-900 border border-gray-200 dark:border-neutral-700 rounded-xl px-3.5 py-2.5 text-xs font-semibold text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              {stops.map((s) => (
-                <option key={s.id} value={s.id}>
-                  {language === 'ne' ? s.nameNe : s.nameEn}
-                </option>
-              ))}
-            </select>
+              onChange={setFromStopId}
+              options={stopOptions}
+              searchable={true}
+              searchPlaceholder={language === 'ne' ? 'चोक खोज्नुहोस्...' : 'Search stop...'}
+              ariaLabel={language === 'ne' ? 'शुरुवाती चोक' : 'Boarding Stop'}
+            />
           </div>
 
           <div>
             <label className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider block mb-1">
               {language === 'ne' ? 'गन्तव्य चोक:' : 'Drop-off Stop:'}
             </label>
-            <select
+            <CustomSelect
               value={toStopId}
-              onChange={(e) => setToStopId(e.target.value)}
-              className="w-full bg-gray-50 dark:bg-neutral-900 border border-gray-200 dark:border-neutral-700 rounded-xl px-3.5 py-2.5 text-xs font-semibold text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              {stops.map((s) => (
-                <option key={s.id} value={s.id}>
-                  {language === 'ne' ? s.nameNe : s.nameEn}
-                </option>
-              ))}
-            </select>
+              onChange={setToStopId}
+              options={stopOptions}
+              searchable={true}
+              searchPlaceholder={language === 'ne' ? 'चोक खोज्नुहोस्...' : 'Search stop...'}
+              ariaLabel={language === 'ne' ? 'गन्तव्य चोक' : 'Drop-off Stop'}
+            />
           </div>
         </div>
 
