@@ -52,51 +52,41 @@ export const ChitwanSchematicMap: React.FC<ChitwanSchematicMapProps> = ({
         <defs>
           {/* Subtle grid pattern */}
           <pattern id="transit-grid" width="40" height="40" patternUnits="userSpaceOnUse">
-            <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#e2e8f0" strokeWidth="0.8" />
+            <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#e5e7eb" strokeWidth="0.8" />
           </pattern>
-          {/* River gradient */}
-          <linearGradient id="river-grad" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor="#bae6fd" stopOpacity="0.8" />
-            <stop offset="100%" stopColor="#7dd3fc" stopOpacity="0.9" />
-          </linearGradient>
-          {/* Forest gradient */}
-          <linearGradient id="forest-grad" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor="#dcfce7" stopOpacity="0.6" />
-            <stop offset="100%" stopColor="#bbf7d0" stopOpacity="0.7" />
-          </linearGradient>
         </defs>
 
         {/* Background Grid */}
-        <rect width="1000" height="700" fill="#f8fafc" />
+        <rect width="1000" height="700" fill="#f8f9fa" />
         <rect width="1000" height="700" fill="url(#transit-grid)" />
 
         {/* Geographic Zones */}
         {/* Tikoli National Forest Corridor */}
         <path
           d="M 620,180 C 680,240 730,340 780,420 L 880,390 C 830,290 770,200 710,130 Z"
-          fill="url(#forest-grad)"
+          fill="#dcfce7"
           stroke="#86efac"
           strokeWidth="1"
           strokeDasharray="4 3"
         />
-        <text x="730" y="270" fill="#15803d" fontSize="12" fontWeight="bold" opacity="0.7" transform="rotate(35, 730, 270)">
+        <text x="730" y="270" fill="#15803d" fontSize="12" fontWeight="bold" opacity="0.8" transform="rotate(35, 730, 270)">
           {language === 'ne' ? 'टिकौली जैविक मार्ग (जंगल)' : 'Tikoli Forest Corridor'}
         </text>
 
         {/* Chitwan National Park Buffer */}
         <rect x="250" y="580" width="700" height="110" rx="16" fill="#f0fdf4" stroke="#bbf7d0" strokeWidth="1.5" />
-        <text x="500" y="640" fill="#166534" fontSize="14" fontWeight="800" textAnchor="middle" opacity="0.6">
+        <text x="500" y="640" fill="#166534" fontSize="14" fontWeight="800" textAnchor="middle" opacity="0.7">
           {language === 'ne' ? 'चितवन राष्ट्रिय निकुञ्ज क्षेत्र (Chitwan National Park)' : 'Chitwan National Park Buffer Zone'}
         </text>
 
         {/* Narayani River on the West */}
         <path
           d="M 410,20 C 430,90 440,140 450,190 C 455,240 435,320 380,410 C 330,490 280,560 210,690 L 150,690 C 230,560 290,480 340,400 C 390,320 405,250 400,190 C 390,130 380,80 360,20 Z"
-          fill="url(#river-grad)"
+          fill="#e0f2fe"
           stroke="#38bdf8"
           strokeWidth="1.5"
         />
-        <text x="320" y="320" fill="#0284c7" fontSize="13" fontWeight="bold" opacity="0.75" transform="rotate(-65, 320, 320)">
+        <text x="320" y="320" fill="#0284c7" fontSize="13" fontWeight="bold" opacity="0.85" transform="rotate(-65, 320, 320)">
           {language === 'ne' ? 'नारायणी नदी (Narayani River)' : 'Narayani River'}
         </text>
 
@@ -173,14 +163,14 @@ export const ChitwanSchematicMap: React.FC<ChitwanSchematicMapProps> = ({
             >
               {/* Ripple on selected stop */}
               {isSelected && (
-                <circle cx={cx} cy={cy} r="18" fill="#f59e0b" fillOpacity="0.25" className="animate-ping" />
+                <circle cx={cx} cy={cy} r="18" fill="#1a73e8" fillOpacity="0.25" className="animate-ping" />
               )}
               {/* Stop circle */}
               <circle
                 cx={cx}
                 cy={cy}
                 r={isHub ? 7 : 5}
-                fill={isSelected ? '#f59e0b' : isHub ? '#0f172a' : '#475569'}
+                fill={isSelected ? '#1a73e8' : isHub ? '#1f2937' : '#4b5563'}
                 stroke="#ffffff"
                 strokeWidth={isHub ? 2.5 : 1.5}
               />

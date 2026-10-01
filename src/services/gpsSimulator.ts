@@ -67,16 +67,37 @@ export function advanceSimulatedVehicles(vehicles: MagicVehicle[], speedMultipli
     const currentLat = vehicle.currentLat;
     const currentLng = vehicle.currentLng;
 
-    // Find closest waypoint segment
+    // Find closest waypoint segment in a forward-biased local window to preserve highway travel direction
     let nearestIndex = vehicle.waypointIndex ?? 0;
+    if (nearestIndex < 0 || nearestIndex >= waypoints.length) nearestIndex = 0;
+
+    // Search within a focused window around current waypoint index first
+    const searchWindow = 12;
     let minWaypointDist = Infinity;
-    for (let i = 0; i < waypoints.length; i++) {
+    let bestIndex = nearestIndex;
+
+    const startIdx = Math.max(0, nearestIndex - 2);
+    const endIdx = Math.min(waypoints.length - 1, nearestIndex + searchWindow);
+    
+    for (let i = startIdx; i <= endIdx; i++) {
       const d = calculateDistanceKm(currentLat, currentLng, waypoints[i][0], waypoints[i][1]);
       if (d < minWaypointDist) {
         minWaypointDist = d;
-        nearestIndex = i;
+        bestIndex = i;
       }
     }
+
+    // If drifted too far, do full scan fallback
+    if (minWaypointDist > 0.5) {
+      for (let i = 0; i < waypoints.length; i++) {
+        const d = calculateDistanceKm(currentLat, currentLng, waypoints[i][0], waypoints[i][1]);
+        if (d < minWaypointDist) {
+          minWaypointDist = d;
+          bestIndex = i;
+        }
+      }
+    }
+    nearestIndex = bestIndex;
 
     // Determine target waypoint based on circular vs linear route
     let currentDirection = vehicle.direction || 'forward';
@@ -110,14 +131,15 @@ export function advanceSimulatedVehicles(vehicles: MagicVehicle[], speedMultipli
     const distToTarget = Math.sqrt(dLat * dLat + dLng * dLng);
 
     // Calculate movement step size based on vehicle speed
-    const stepSize = 0.00028 * (vehicle.speedKmH / 28) * speedMultiplier;
+    // 0.00035 in degrees is ~35-40 meters
+    const stepSize = 0.00035 * (vehicle.speedKmH / 28) * speedMultiplier;
 
     let newLat: number;
     let newLng: number;
     let heading = vehicle.heading;
     let currentWpIndex = nearestIndex;
 
-    if (distToTarget < stepSize || distToTarget === 0) {
+    if (distToTarget <= stepSize || distToTarget === 0) {
       // Reached waypoint, advance to next
       newLat = targetWp[0];
       newLng = targetWp[1];

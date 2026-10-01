@@ -1,7 +1,12 @@
 import React, { useState } from 'react';
 import { TransitStop, TransitRoute, Language } from '../types/transit';
 import { calculateDistanceKm, toNepaliNumber } from '../services/gpsSimulator';
-import { Calculator, ShieldCheck, GraduationCap, Info } from 'lucide-react';
+import { 
+  RiCalculatorLine, 
+  RiShieldCheckLine, 
+  RiGraduationCapLine, 
+  RiInformationLine 
+} from 'react-icons/ri';
 
 interface FaresPageProps {
   stops: TransitStop[];
@@ -32,16 +37,16 @@ export const FaresPage: React.FC<FaresPageProps> = ({
   return (
     <div className="max-w-4xl mx-auto p-4 sm:p-6 space-y-6">
       {/* Header */}
-      <div className="bg-white dark:bg-slate-900 rounded-2xl p-6 border border-slate-200 dark:border-slate-800 shadow-sm transition-colors">
+      <div className="bg-white dark:bg-[#1e1f20] rounded-2xl p-6 border border-gray-200 dark:border-neutral-800 shadow-xs transition-colors">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-amber-500 text-slate-950 flex items-center justify-center font-bold">
-            <Calculator className="w-5 h-5" />
+          <div className="w-10 h-10 rounded-xl bg-blue-600 text-white flex items-center justify-center font-bold shadow-xs">
+            <RiCalculatorLine className="w-5 h-5" />
           </div>
           <div>
-            <h2 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white">
+            <h2 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100">
               {language === 'ne' ? 'चितवन भरतपुर म्याजिक भाडा दर' : 'Bharatpur Magic Fare Calculator'}
             </h2>
-            <p className="text-xs text-slate-500 dark:text-slate-400">
+            <p className="text-xs text-gray-500 dark:text-gray-400">
               {language === 'ne' ? 'भरतपुर महानगरपालिका आधिकारिक भाडा दर र छुट तालिका' : 'Official regulated transit rates & concession matrix for Chitwan district.'}
             </p>
           </div>
@@ -49,16 +54,16 @@ export const FaresPage: React.FC<FaresPageProps> = ({
       </div>
 
       {/* Interactive Calculator */}
-      <div className="bg-white dark:bg-slate-900 rounded-2xl p-6 border border-slate-200 dark:border-slate-800 shadow-sm transition-colors space-y-5">
+      <div className="bg-white dark:bg-[#1e1f20] rounded-2xl p-6 border border-gray-200 dark:border-neutral-800 shadow-xs transition-colors space-y-5">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block mb-1">
+            <label className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider block mb-1">
               {language === 'ne' ? 'शुरुवाती चोक:' : 'Boarding Stop:'}
             </label>
             <select
               value={fromStopId}
               onChange={(e) => setFromStopId(e.target.value)}
-              className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3.5 py-2.5 text-xs font-semibold text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-amber-500"
+              className="w-full bg-gray-50 dark:bg-neutral-900 border border-gray-200 dark:border-neutral-700 rounded-xl px-3.5 py-2.5 text-xs font-semibold text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               {stops.map((s) => (
                 <option key={s.id} value={s.id}>
@@ -69,13 +74,13 @@ export const FaresPage: React.FC<FaresPageProps> = ({
           </div>
 
           <div>
-            <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block mb-1">
+            <label className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider block mb-1">
               {language === 'ne' ? 'गन्तव्य चोक:' : 'Drop-off Stop:'}
             </label>
             <select
               value={toStopId}
               onChange={(e) => setToStopId(e.target.value)}
-              className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3.5 py-2.5 text-xs font-semibold text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-amber-500"
+              className="w-full bg-gray-50 dark:bg-neutral-900 border border-gray-200 dark:border-neutral-700 rounded-xl px-3.5 py-2.5 text-xs font-semibold text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               {stops.map((s) => (
                 <option key={s.id} value={s.id}>
@@ -87,20 +92,20 @@ export const FaresPage: React.FC<FaresPageProps> = ({
         </div>
 
         {/* Student Discount Toggle */}
-        <label className="flex items-center gap-3 p-3.5 bg-slate-50 dark:bg-slate-800/60 rounded-xl border border-slate-200 dark:border-slate-700 cursor-pointer select-none">
+        <label className="flex items-center gap-3 p-3.5 bg-gray-50 dark:bg-neutral-900 rounded-xl border border-gray-200 dark:border-neutral-700 cursor-pointer select-none">
           <input
             type="checkbox"
             checked={isStudent}
             onChange={(e) => setIsStudent(e.target.checked)}
-            className="w-4 h-4 text-amber-600 rounded focus:ring-amber-500 cursor-pointer"
+            className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500 cursor-pointer"
           />
           <div className="flex items-center gap-2">
-            <GraduationCap className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
+            <RiGraduationCapLine className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
             <div>
-              <span className="text-xs font-bold text-slate-900 dark:text-white block">
+              <span className="text-xs font-bold text-gray-900 dark:text-white block">
                 {language === 'ne' ? 'विद्यार्थी परिचय पत्र (४५% छुट)' : 'Student / Senior Concession (45% Discount)'}
               </span>
-              <span className="text-[11px] text-slate-500 dark:text-slate-400">
+              <span className="text-[11px] text-gray-500 dark:text-gray-400">
                 {language === 'ne' ? 'नेपाल सरकार यातायात नियमावली बमोजिम' : 'Under Ministry of Transport regulations'}
               </span>
             </div>
@@ -108,18 +113,18 @@ export const FaresPage: React.FC<FaresPageProps> = ({
         </label>
 
         {/* Result Display */}
-        <div className="p-5 bg-slate-900 text-white rounded-2xl flex items-center justify-between shadow-lg">
+        <div className="p-5 bg-neutral-900 dark:bg-neutral-950 text-white rounded-2xl flex items-center justify-between shadow-sm border border-neutral-800">
           <div>
-            <span className="text-[10px] uppercase text-slate-400 font-bold block">
+            <span className="text-[10px] uppercase text-gray-400 font-semibold block">
               {language === 'ne' ? 'तोकिएको आधिकारिक भाडा' : 'Official Regulated Fare'}
             </span>
-            <span className="text-xs text-slate-300">
-              {language === 'ne' ? `दूरी: ~${toNepaliNumber(roadDist)} कि.मी.` : `Road Distance: ~${roadDist} km`}
+            <span className="text-xs text-gray-300">
+              {language === 'ne' ? `दूरी: ~${toNepaliNumber(roadDist)} कि.मी.` : `Highway Distance: ~${roadDist} km`}
             </span>
           </div>
 
           <div className="text-right">
-            <span className="text-3xl font-black text-amber-400">
+            <span className="text-3xl font-bold text-blue-400">
               Rs. {language === 'ne' ? toNepaliNumber(finalFare) : finalFare}
             </span>
             {isStudent && (
@@ -132,15 +137,15 @@ export const FaresPage: React.FC<FaresPageProps> = ({
       </div>
 
       {/* Standard Tariffs Table */}
-      <div className="bg-white dark:bg-slate-900 rounded-2xl p-6 border border-slate-200 dark:border-slate-800 shadow-sm transition-colors space-y-3">
-        <h3 className="text-sm font-bold text-slate-800 dark:text-white uppercase tracking-wider flex items-center gap-2">
-          <Info className="w-4 h-4 text-slate-400" />
+      <div className="bg-white dark:bg-[#1e1f20] rounded-2xl p-6 border border-gray-200 dark:border-neutral-800 shadow-xs transition-colors space-y-3">
+        <h3 className="text-sm font-semibold text-gray-800 dark:text-gray-100 uppercase tracking-wider flex items-center gap-2">
+          <RiInformationLine className="w-4 h-4 text-gray-400" />
           <span>{language === 'ne' ? 'भरतपुरका सबै रुटहरूको भाडा तालिका' : 'Bharatpur Magic Route Tariffs'}</span>
         </h3>
 
-        <div className="border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden text-xs">
+        <div className="border border-gray-200 dark:border-neutral-800 rounded-xl overflow-hidden text-xs">
           <table className="w-full text-left">
-            <thead className="bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold text-[11px]">
+            <thead className="bg-gray-100 dark:bg-neutral-900 text-gray-700 dark:text-gray-300 font-semibold text-[11px]">
               <tr>
                 <th className="p-3">{language === 'ne' ? 'रुट' : 'Route'}</th>
                 <th className="p-3">{language === 'ne' ? 'दूरी' : 'Distance'}</th>
@@ -148,18 +153,18 @@ export const FaresPage: React.FC<FaresPageProps> = ({
                 <th className="p-3 text-emerald-700 dark:text-emerald-400">{language === 'ne' ? 'विद्यार्थी' : 'Student (45% off)'}</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+            <tbody className="divide-y divide-gray-100 dark:divide-neutral-800">
               {routes.map((r) => (
-                <tr key={r.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/40">
-                  <td className="p-3 font-bold">
-                    <span className="px-1.5 py-0.5 rounded text-[10px] text-white mr-1.5" style={{ backgroundColor: r.color }}>
+                <tr key={r.id} className="hover:bg-gray-50 dark:hover:bg-neutral-900/60">
+                  <td className="p-3 font-semibold">
+                    <span className="px-1.5 py-0.5 rounded text-[10px] text-white mr-1.5 font-bold" style={{ backgroundColor: r.color }}>
                       R{r.routeNumber}
                     </span>
-                    <span className="text-slate-900 dark:text-white">{language === 'ne' ? r.nameNe : r.nameEn}</span>
+                    <span className="text-gray-900 dark:text-gray-100">{language === 'ne' ? r.nameNe : r.nameEn}</span>
                   </td>
-                  <td className="p-3 text-slate-600 dark:text-slate-400">{r.totalDistanceKm} km</td>
-                  <td className="p-3 font-bold text-slate-900 dark:text-white">Rs. {r.baseFareNpr} - {r.maxFareNpr}</td>
-                  <td className="p-3 font-bold text-emerald-700 dark:text-emerald-400">
+                  <td className="p-3 text-gray-600 dark:text-gray-400">{r.totalDistanceKm} km</td>
+                  <td className="p-3 font-semibold text-gray-900 dark:text-gray-100">Rs. {r.baseFareNpr} - {r.maxFareNpr}</td>
+                  <td className="p-3 font-semibold text-emerald-700 dark:text-emerald-400">
                     Rs. {Math.round(r.baseFareNpr * 0.55)} - {Math.round(r.maxFareNpr * 0.55)}
                   </td>
                 </tr>
@@ -168,8 +173,8 @@ export const FaresPage: React.FC<FaresPageProps> = ({
           </table>
         </div>
 
-        <div className="p-3.5 bg-amber-50 dark:bg-amber-950/30 rounded-xl border border-amber-200/80 dark:border-amber-900 text-xs text-amber-900 dark:text-amber-300 flex items-start gap-2">
-          <ShieldCheck className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+        <div className="p-3.5 bg-blue-50 dark:bg-blue-950/30 rounded-xl border border-blue-200/80 dark:border-blue-900 text-xs text-blue-900 dark:text-blue-300 flex items-start gap-2">
+          <RiShieldCheckLine className="w-4 h-4 text-blue-600 shrink-0 mt-0.5" />
           <div>
             <span className="font-bold block">
               {language === 'ne' ? 'चितवन यातायात नियम र पारदर्शिता:' : 'Chitwan Transport Regulations:'}

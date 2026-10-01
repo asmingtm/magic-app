@@ -1,6 +1,15 @@
 import React from 'react';
 import { Language } from '../types/transit';
-import { Sun, Moon, Laptop, Map, Globe, Gauge, Shield, RefreshCw, CheckCircle2, Info } from 'lucide-react';
+import { 
+  RiSunLine, 
+  RiMoonLine, 
+  RiComputerLine, 
+  RiRoadMapLine, 
+  RiGlobalLine, 
+  RiDashboard3Line, 
+  RiRefreshLine, 
+  RiCheckboxCircleFill 
+} from 'react-icons/ri';
 
 export type ThemeMode = 'light' | 'dark' | 'system';
 export type BasemapProvider = 'carto-voyager' | 'esri-free' | 'carto-dark' | 'schematic';
@@ -31,11 +40,11 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({
   return (
     <div className="max-w-4xl mx-auto p-4 sm:p-6 space-y-6">
       {/* Header */}
-      <div className="bg-white dark:bg-slate-900 rounded-2xl p-6 border border-slate-200 dark:border-slate-800 shadow-sm transition-colors">
-        <h2 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white mb-1">
+      <div className="bg-white dark:bg-[#1e1f20] rounded-2xl p-6 border border-gray-200 dark:border-neutral-800 shadow-xs transition-colors">
+        <h2 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100 mb-1">
           {language === 'ne' ? 'सेटिङहरू र प्राथमिकताहरू' : 'Settings & Preferences'}
         </h2>
-        <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400">
+        <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
           {language === 'ne'
             ? 'डार्क मोड, नक्सा प्रदायक, भाषा र भरतपुर म्याजिक सिमुलेसन कन्फिगर गर्नुहोस्।'
             : 'Configure Dark Mode, map basemap tile provider, language, and transit simulation.'}
@@ -43,13 +52,13 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({
       </div>
 
       {/* Theme Settings (Dark Mode) */}
-      <div className="bg-white dark:bg-slate-900 rounded-2xl p-6 border border-slate-200 dark:border-slate-800 shadow-sm transition-colors space-y-4">
+      <div className="bg-white dark:bg-[#1e1f20] rounded-2xl p-6 border border-gray-200 dark:border-neutral-800 shadow-xs transition-colors space-y-4">
         <div>
-          <h3 className="text-sm font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 flex items-center gap-2">
-            <Moon className="w-4 h-4 text-amber-500" />
+          <h3 className="text-sm font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 flex items-center gap-2">
+            <RiMoonLine className="w-4 h-4 text-blue-600 dark:text-blue-400" />
             <span>{language === 'ne' ? 'रंग थिम (डार्क मोड)' : 'Appearance & Theme'}</span>
           </h3>
-          <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5">
+          <p className="text-xs text-gray-600 dark:text-gray-400 mt-0.5">
             {language === 'ne'
               ? 'रातको समयमा म्याजिक हेर्दा आँखाको आरामका लागि डार्क मोड छान्न सक्नुहुन्छ।'
               : 'Switch between light and dark themes for comfortable night-time transit navigation.'}
@@ -61,78 +70,78 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({
             onClick={() => onThemeChange('light')}
             className={`p-4 rounded-xl border text-left flex items-center justify-between cursor-pointer transition-all ${
               theme === 'light'
-                ? 'border-amber-500 bg-amber-50/50 dark:bg-amber-950/20 ring-2 ring-amber-400'
-                : 'border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700'
+                ? 'border-blue-600 bg-blue-50/50 dark:bg-blue-950/30 ring-2 ring-blue-500/50'
+                : 'border-gray-200 dark:border-neutral-800 hover:border-gray-300 dark:hover:border-neutral-700'
             }`}
           >
             <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-lg bg-amber-100 text-amber-800 flex items-center justify-center">
-                <Sun className="w-5 h-5" />
+              <div className="w-9 h-9 rounded-lg bg-blue-50 dark:bg-blue-950/50 text-blue-600 dark:text-blue-400 flex items-center justify-center">
+                <RiSunLine className="w-5 h-5" />
               </div>
               <div>
-                <span className="font-bold text-xs sm:text-sm text-slate-900 dark:text-white block">
+                <span className="font-bold text-xs sm:text-sm text-gray-900 dark:text-white block">
                   {language === 'ne' ? 'उज्यालो (Light)' : 'Light Mode'}
                 </span>
-                <span className="text-[11px] text-slate-500 dark:text-slate-400">Daytime clarity</span>
+                <span className="text-[11px] text-gray-500 dark:text-gray-400">Daytime clarity</span>
               </div>
             </div>
-            {theme === 'light' && <CheckCircle2 className="w-4 h-4 text-amber-600" />}
+            {theme === 'light' && <RiCheckboxCircleFill className="w-4 h-4 text-blue-600 dark:text-blue-400" />}
           </button>
 
           <button
             onClick={() => onThemeChange('dark')}
             className={`p-4 rounded-xl border text-left flex items-center justify-between cursor-pointer transition-all ${
               theme === 'dark'
-                ? 'border-amber-500 bg-amber-50/50 dark:bg-amber-950/20 ring-2 ring-amber-400'
-                : 'border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700'
+                ? 'border-blue-600 bg-blue-50/50 dark:bg-blue-950/30 ring-2 ring-blue-500/50'
+                : 'border-gray-200 dark:border-neutral-800 hover:border-gray-300 dark:hover:border-neutral-700'
             }`}
           >
             <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-lg bg-slate-800 text-amber-400 flex items-center justify-center">
-                <Moon className="w-5 h-5" />
+              <div className="w-9 h-9 rounded-lg bg-neutral-800 text-blue-400 flex items-center justify-center">
+                <RiMoonLine className="w-5 h-5" />
               </div>
               <div>
-                <span className="font-bold text-xs sm:text-sm text-slate-900 dark:text-white block">
+                <span className="font-bold text-xs sm:text-sm text-gray-900 dark:text-white block">
                   {language === 'ne' ? 'गाढा (Dark)' : 'Dark Mode'}
                 </span>
-                <span className="text-[11px] text-slate-500 dark:text-slate-400">Night navigation</span>
+                <span className="text-[11px] text-gray-500 dark:text-gray-400">Night navigation</span>
               </div>
             </div>
-            {theme === 'dark' && <CheckCircle2 className="w-4 h-4 text-amber-600" />}
+            {theme === 'dark' && <RiCheckboxCircleFill className="w-4 h-4 text-blue-600 dark:text-blue-400" />}
           </button>
 
           <button
             onClick={() => onThemeChange('system')}
             className={`p-4 rounded-xl border text-left flex items-center justify-between cursor-pointer transition-all ${
               theme === 'system'
-                ? 'border-amber-500 bg-amber-50/50 dark:bg-amber-950/20 ring-2 ring-amber-400'
-                : 'border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700'
+                ? 'border-blue-600 bg-blue-50/50 dark:bg-blue-950/30 ring-2 ring-blue-500/50'
+                : 'border-gray-200 dark:border-neutral-800 hover:border-gray-300 dark:hover:border-neutral-700'
             }`}
           >
             <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 flex items-center justify-center">
-                <Laptop className="w-5 h-5" />
+              <div className="w-9 h-9 rounded-lg bg-gray-100 dark:bg-neutral-800 text-gray-700 dark:text-gray-300 flex items-center justify-center">
+                <RiComputerLine className="w-5 h-5" />
               </div>
               <div>
-                <span className="font-bold text-xs sm:text-sm text-slate-900 dark:text-white block">
+                <span className="font-bold text-xs sm:text-sm text-gray-900 dark:text-white block">
                   {language === 'ne' ? 'प्रणाली अनुसार (System)' : 'System Default'}
                 </span>
-                <span className="text-[11px] text-slate-500 dark:text-slate-400">Follow device</span>
+                <span className="text-[11px] text-gray-500 dark:text-gray-400">Follow device</span>
               </div>
             </div>
-            {theme === 'system' && <CheckCircle2 className="w-4 h-4 text-amber-600" />}
+            {theme === 'system' && <RiCheckboxCircleFill className="w-4 h-4 text-blue-600 dark:text-blue-400" />}
           </button>
         </div>
       </div>
 
-      {/* Map Tile Basemap Provider */}
-      <div className="bg-white dark:bg-slate-900 rounded-2xl p-6 border border-slate-200 dark:border-slate-800 shadow-sm transition-colors space-y-4">
+      {/* Basemap Settings */}
+      <div className="bg-white dark:bg-[#1e1f20] rounded-2xl p-6 border border-gray-200 dark:border-neutral-800 shadow-xs transition-colors space-y-4">
         <div>
-          <h3 className="text-sm font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 flex items-center gap-2">
-            <Map className="w-4 h-4 text-blue-500" />
+          <h3 className="text-sm font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 flex items-center gap-2">
+            <RiRoadMapLine className="w-4 h-4 text-blue-600 dark:text-blue-400" />
             <span>{language === 'ne' ? 'नक्सा प्रदायक र शैली' : 'Map Basemap Provider'}</span>
           </h3>
-          <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5">
+          <p className="text-xs text-gray-600 dark:text-gray-400 mt-0.5">
             {language === 'ne'
               ? 'कुनै पनि एपीआई कुञ्जी नचाहिने निःशुल्क ओपनस्ट्रीटम्याप वा तपाईंको CARTO कुञ्जी सहितको ट्रान्जिट नक्सा छान्नुहोस्।'
               : 'Choose between 100% Free OpenStreetMap (No API Key needed) or CARTO Basemaps.'}
@@ -145,49 +154,49 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({
             onClick={() => onBasemapChange('carto-voyager')}
             className={`p-4 rounded-xl border text-left flex items-start justify-between cursor-pointer transition-all ${
               basemap === 'carto-voyager'
-                ? 'border-amber-500 bg-amber-50/40 dark:bg-amber-950/20 ring-2 ring-amber-400'
-                : 'border-slate-200 dark:border-slate-800 hover:border-slate-300'
+                ? 'border-blue-600 bg-blue-50/40 dark:bg-blue-950/20 ring-2 ring-blue-500/50'
+                : 'border-gray-200 dark:border-neutral-800 hover:border-gray-300 dark:hover:border-neutral-700'
             }`}
           >
             <div>
               <div className="flex items-center gap-2 mb-1">
-                <span className="px-2 py-0.5 rounded text-[10px] font-black bg-amber-100 text-amber-900 dark:bg-amber-900 dark:text-amber-200">
+                <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
                   CARTO KEY (ACTIVE)
                 </span>
-                <span className="font-bold text-xs sm:text-sm text-slate-900 dark:text-white">
+                <span className="font-bold text-xs sm:text-sm text-gray-900 dark:text-white">
                   CARTO Voyager (Recommended)
                 </span>
               </div>
-              <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed">
+              <p className="text-[11px] text-gray-500 dark:text-gray-400 leading-relaxed">
                 High-definition, clean cartography with official CARTO Basemaps key loaded. Clear road outlines & labels.
               </p>
             </div>
-            {basemap === 'carto-voyager' && <CheckCircle2 className="w-4 h-4 text-amber-600 shrink-0 ml-2" />}
+            {basemap === 'carto-voyager' && <RiCheckboxCircleFill className="w-4 h-4 text-blue-600 dark:text-blue-400 shrink-0 ml-2" />}
           </button>
 
-          {/* 100% Free ESRI World Street Map (No Key Required) */}
+          {/* 100% Free ESRI World Street Map */}
           <button
             onClick={() => onBasemapChange('esri-free')}
             className={`p-4 rounded-xl border text-left flex items-start justify-between cursor-pointer transition-all ${
               basemap === 'esri-free'
-                ? 'border-emerald-500 bg-emerald-50/40 dark:bg-emerald-950/20 ring-2 ring-emerald-400'
-                : 'border-slate-200 dark:border-slate-800 hover:border-slate-300'
+                ? 'border-blue-600 bg-blue-50/40 dark:bg-blue-950/20 ring-2 ring-blue-500/50'
+                : 'border-gray-200 dark:border-neutral-800 hover:border-gray-300 dark:hover:border-neutral-700'
             }`}
           >
             <div>
               <div className="flex items-center gap-2 mb-1">
-                <span className="px-2 py-0.5 rounded text-[10px] font-black bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-300">
-                  100% FREE · NO KEY REQUIRED
+                <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-300">
+                  100% FREE · NO KEY
                 </span>
-                <span className="font-bold text-xs sm:text-sm text-slate-900 dark:text-white">
+                <span className="font-bold text-xs sm:text-sm text-gray-900 dark:text-white">
                   ESRI World Street Map
                 </span>
               </div>
-              <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed">
+              <p className="text-[11px] text-gray-500 dark:text-gray-400 leading-relaxed">
                 Completely free worldwide street map. Zero rate limits, zero API key needed, verified 100% uptime.
               </p>
             </div>
-            {basemap === 'esri-free' && <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 ml-2" />}
+            {basemap === 'esri-free' && <RiCheckboxCircleFill className="w-4 h-4 text-emerald-600 shrink-0 ml-2" />}
           </button>
 
           {/* CARTO Dark Matter */}
@@ -195,48 +204,49 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({
             onClick={() => onBasemapChange('carto-dark')}
             className={`p-4 rounded-xl border text-left flex items-start justify-between cursor-pointer transition-all ${
               basemap === 'carto-dark'
-                ? 'border-blue-500 bg-blue-50/40 dark:bg-blue-950/20 ring-2 ring-blue-400'
-                : 'border-slate-200 dark:border-slate-800 hover:border-slate-300'
+                ? 'border-blue-600 bg-blue-50/40 dark:bg-blue-950/20 ring-2 ring-blue-500/50'
+                : 'border-gray-200 dark:border-neutral-800 hover:border-gray-300 dark:hover:border-neutral-700'
             }`}
           >
             <div>
               <div className="flex items-center gap-2 mb-1">
-                <span className="px-2 py-0.5 rounded text-[10px] font-black bg-slate-800 text-white">
+                <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-neutral-800 text-white">
                   DARK THEME
                 </span>
-                <span className="font-bold text-xs sm:text-sm text-slate-900 dark:text-white">
+                <span className="font-bold text-xs sm:text-sm text-gray-900 dark:text-white">
                   CARTO Dark Matter
                 </span>
               </div>
-              <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed">
+              <p className="text-[11px] text-gray-500 dark:text-gray-400 leading-relaxed">
                 Midnight dark map tiles optimized for dark mode with glowing transit routes.
               </p>
             </div>
-            {basemap === 'carto-dark' && <CheckCircle2 className="w-4 h-4 text-blue-600 shrink-0 ml-2" />}
+            {basemap === 'carto-dark' && <RiCheckboxCircleFill className="w-4 h-4 text-blue-600 dark:text-blue-400 shrink-0 ml-2" />}
           </button>
 
+          {/* Schematic */}
           <button
             onClick={() => onBasemapChange('schematic')}
             className={`p-4 rounded-xl border text-left flex items-start justify-between cursor-pointer transition-all ${
               basemap === 'schematic'
-                ? 'border-blue-500 bg-blue-50/40 dark:bg-blue-950/20 ring-2 ring-blue-400'
-                : 'border-slate-200 dark:border-slate-800 hover:border-slate-300'
+                ? 'border-blue-600 bg-blue-50/40 dark:bg-blue-950/20 ring-2 ring-blue-500/50'
+                : 'border-gray-200 dark:border-neutral-800 hover:border-gray-300 dark:hover:border-neutral-700'
             }`}
           >
             <div>
               <div className="flex items-center gap-2 mb-1">
-                <span className="px-2 py-0.5 rounded text-[10px] font-black bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300">
+                <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300">
                   OFFLINE / VECTOR
                 </span>
-                <span className="font-bold text-xs sm:text-sm text-slate-900 dark:text-white">
+                <span className="font-bold text-xs sm:text-sm text-gray-900 dark:text-white">
                   Chitwan Transit Schematic
                 </span>
               </div>
-              <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed">
+              <p className="text-[11px] text-gray-500 dark:text-gray-400 leading-relaxed">
                 Zero external network tiles. Direct vector canvas with rivers, highways & chowks.
               </p>
             </div>
-            {basemap === 'schematic' && <CheckCircle2 className="w-4 h-4 text-blue-600 shrink-0 ml-2" />}
+            {basemap === 'schematic' && <RiCheckboxCircleFill className="w-4 h-4 text-blue-600 dark:text-blue-400 shrink-0 ml-2" />}
           </button>
         </div>
       </div>
@@ -244,9 +254,9 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({
       {/* Language & Simulation Speed */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {/* Language */}
-        <div className="bg-white dark:bg-slate-900 rounded-2xl p-6 border border-slate-200 dark:border-slate-800 shadow-sm transition-colors space-y-3">
-          <h3 className="text-sm font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 flex items-center gap-2">
-            <Globe className="w-4 h-4 text-emerald-500" />
+        <div className="bg-white dark:bg-[#1e1f20] rounded-2xl p-6 border border-gray-200 dark:border-neutral-800 shadow-xs transition-colors space-y-3">
+          <h3 className="text-sm font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 flex items-center gap-2">
+            <RiGlobalLine className="w-4 h-4 text-blue-600 dark:text-blue-400" />
             <span>{language === 'ne' ? 'भाषा (Language)' : 'App Language'}</span>
           </h3>
 
@@ -255,8 +265,8 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({
               onClick={() => onLanguageChange('en')}
               className={`py-2.5 px-3 rounded-xl border font-bold text-xs cursor-pointer transition-colors ${
                 language === 'en'
-                  ? 'bg-slate-900 text-white dark:bg-amber-500 dark:text-slate-950 border-transparent shadow'
-                  : 'bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700'
+                  ? 'bg-blue-600 text-white border-transparent shadow-xs'
+                  : 'bg-gray-50 dark:bg-neutral-900 text-gray-700 dark:text-gray-300 border-gray-200 dark:border-neutral-700'
               }`}
             >
               English
@@ -265,8 +275,8 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({
               onClick={() => onLanguageChange('ne')}
               className={`py-2.5 px-3 rounded-xl border font-bold text-xs cursor-pointer transition-colors ${
                 language === 'ne'
-                  ? 'bg-slate-900 text-white dark:bg-amber-500 dark:text-slate-950 border-transparent shadow'
-                  : 'bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700'
+                  ? 'bg-blue-600 text-white border-transparent shadow-xs'
+                  : 'bg-gray-50 dark:bg-neutral-900 text-gray-700 dark:text-gray-300 border-gray-200 dark:border-neutral-700'
               }`}
             >
               नेपाली (Nepali)
@@ -275,9 +285,9 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({
         </div>
 
         {/* Simulation Speed */}
-        <div className="bg-white dark:bg-slate-900 rounded-2xl p-6 border border-slate-200 dark:border-slate-800 shadow-sm transition-colors space-y-3">
-          <h3 className="text-sm font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 flex items-center gap-2">
-            <Gauge className="w-4 h-4 text-purple-500" />
+        <div className="bg-white dark:bg-[#1e1f20] rounded-2xl p-6 border border-gray-200 dark:border-neutral-800 shadow-xs transition-colors space-y-3">
+          <h3 className="text-sm font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 flex items-center gap-2">
+            <RiDashboard3Line className="w-4 h-4 text-blue-600 dark:text-blue-400" />
             <span>{language === 'ne' ? 'सिमुलेसन गति' : 'Simulation Speed'}</span>
           </h3>
 
@@ -286,8 +296,8 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({
               onClick={() => onSimulationSpeedChange(0.5)}
               className={`py-2 px-3 rounded-xl border font-bold text-xs cursor-pointer transition-colors ${
                 simulationSpeed === 0.5
-                  ? 'bg-slate-900 text-white dark:bg-amber-500 dark:text-slate-950 border-transparent shadow'
-                  : 'bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700'
+                  ? 'bg-blue-600 text-white border-transparent shadow-xs'
+                  : 'bg-gray-50 dark:bg-neutral-900 text-gray-700 dark:text-gray-300 border-gray-200 dark:border-neutral-700'
               }`}
             >
               0.5x Slow
@@ -296,8 +306,8 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({
               onClick={() => onSimulationSpeedChange(1.0)}
               className={`py-2 px-3 rounded-xl border font-bold text-xs cursor-pointer transition-colors ${
                 simulationSpeed === 1.0
-                  ? 'bg-slate-900 text-white dark:bg-amber-500 dark:text-slate-950 border-transparent shadow'
-                  : 'bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700'
+                  ? 'bg-blue-600 text-white border-transparent shadow-xs'
+                  : 'bg-gray-50 dark:bg-neutral-900 text-gray-700 dark:text-gray-300 border-gray-200 dark:border-neutral-700'
               }`}
             >
               1.0x Normal
@@ -306,8 +316,8 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({
               onClick={() => onSimulationSpeedChange(2.0)}
               className={`py-2 px-3 rounded-xl border font-bold text-xs cursor-pointer transition-colors ${
                 simulationSpeed === 2.0
-                  ? 'bg-slate-900 text-white dark:bg-amber-500 dark:text-slate-950 border-transparent shadow'
-                  : 'bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700'
+                  ? 'bg-blue-600 text-white border-transparent shadow-xs'
+                  : 'bg-gray-50 dark:bg-neutral-900 text-gray-700 dark:text-gray-300 border-gray-200 dark:border-neutral-700'
               }`}
             >
               2.0x Fast
@@ -317,23 +327,23 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({
       </div>
 
       {/* Fleet Management */}
-      <div className="bg-white dark:bg-slate-900 rounded-2xl p-6 border border-slate-200 dark:border-slate-800 shadow-sm transition-colors flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="bg-white dark:bg-[#1e1f20] rounded-2xl p-6 border border-gray-200 dark:border-neutral-800 shadow-xs transition-colors flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h3 className="text-sm font-bold text-slate-900 dark:text-white">
+          <h3 className="text-sm font-bold text-gray-900 dark:text-white">
             {language === 'ne' ? 'भरतपुर म्याजिक फ्लीट रिसेट' : 'Reset Simulated Fleet'}
           </h3>
-          <p className="text-xs text-slate-500 dark:text-slate-400">
+          <p className="text-xs text-gray-500 dark:text-gray-400">
             {language === 'ne'
               ? 'थपिएका सबै डमी म्याजिकहरू हटाएर पूर्वनिर्धारित अवस्थामा फर्काउनुहोस्।'
-              : 'Restore the initial 14 Magic vans on Routes 1 through 5.'}
+              : 'Restore the initial highway Magic vans on Routes 1 through 5.'}
           </p>
         </div>
 
         <button
           onClick={onResetFleet}
-          className="px-4 py-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 font-bold text-xs rounded-xl flex items-center gap-1.5 transition-colors cursor-pointer self-start sm:self-auto"
+          className="px-4 py-2 bg-gray-100 hover:bg-gray-200 dark:bg-neutral-800 dark:hover:bg-neutral-700 text-gray-800 dark:text-gray-200 font-semibold text-xs rounded-xl flex items-center gap-1.5 transition-colors cursor-pointer self-start sm:self-auto"
         >
-          <RefreshCw className="w-3.5 h-3.5" />
+          <RiRefreshLine className="w-3.5 h-3.5" />
           <span>{language === 'ne' ? 'फ्लीट रिसेट गर्नुहोस्' : 'Reset Fleet'}</span>
         </button>
       </div>

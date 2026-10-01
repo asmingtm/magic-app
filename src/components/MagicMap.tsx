@@ -4,6 +4,15 @@ import { MagicVehicle, TransitRoute, TransitStop, Language } from '../types/tran
 import { BHARATPUR_CENTER } from '../data/bharatpurTransitData';
 import { toNepaliNumber } from '../services/gpsSimulator';
 import { ChitwanSchematicMap } from './ChitwanSchematicMap';
+import { 
+  RiCompass3Line, 
+  RiMoonLine, 
+  RiRoadMapLine, 
+  RiEarthLine, 
+  RiFocus2Line, 
+  RiArrowDownSLine, 
+  RiCheckLine 
+} from 'react-icons/ri';
 
 interface MagicMapProps {
   routes: TransitRoute[];
@@ -225,14 +234,14 @@ export const MagicMap: React.FC<MagicMapProps> = ({
         <div class="relative flex items-center justify-center cursor-pointer transition-transform hover:scale-125">
           <div class="w-3.5 h-3.5 rounded-full ${
             isSelected
-              ? 'bg-amber-500 ring-4 ring-amber-300 ring-opacity-75 scale-125'
+              ? 'bg-blue-600 ring-4 ring-blue-400/60 ring-opacity-75 scale-125'
               : isHub
               ? 'bg-slate-900 border-2 border-white shadow-md'
               : 'bg-slate-600 border border-white shadow-sm'
           }"></div>
           ${
             isHub || isSelected
-              ? `<div class="absolute -bottom-5 left-1/2 -translate-x-1/2 whitespace-nowrap bg-white/95 px-1.5 py-0.5 rounded text-[10px] font-semibold text-slate-800 shadow border border-slate-200 pointer-events-none">
+              ? `<div class="absolute -bottom-5 left-1/2 -translate-x-1/2 whitespace-nowrap bg-white/95 dark:bg-[#1e1f20]/95 px-1.5 py-0.5 rounded text-[10px] font-semibold text-slate-800 dark:text-slate-100 shadow border border-slate-200 dark:border-neutral-700 pointer-events-none">
                   ${language === 'ne' ? stop.nameNe : stop.nameEn}
                 </div>`
               : ''
@@ -252,17 +261,20 @@ export const MagicMap: React.FC<MagicMapProps> = ({
       const popupContent = `
         <div class="p-2 text-slate-900 min-w-[200px]">
           <div class="flex items-center gap-1.5 mb-1">
-            <span class="w-2 h-2 rounded-full bg-amber-500"></span>
-            <span class="text-xs font-bold text-amber-700 uppercase tracking-wide">
+            <span class="w-2 h-2 rounded-full bg-blue-600"></span>
+            <span class="text-xs font-bold text-blue-700 uppercase tracking-wide">
               ${language === 'ne' ? 'म्याजिक स्टेसन' : 'Magic Stop'}
             </span>
           </div>
           <h4 class="font-bold text-sm text-slate-900">${stop.nameEn}</h4>
           <p class="text-xs text-slate-600 mb-1 font-medium">${stop.nameNe}</p>
-          <div class="text-[11px] text-slate-500 border-t border-slate-100 pt-1 mt-1">
-            📍 ${language === 'ne' ? stop.landmarkNe : stop.landmarkEn}
+          <div class="text-[11px] text-slate-500 border-t border-slate-100 pt-1.5 mt-1 flex items-center gap-1.5">
+            <svg class="w-3.5 h-3.5 text-blue-600 shrink-0" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 20.9l4.95-4.95a7 7 0 1 0-9.9 0L12 20.9zm0 2.83l-6.36-6.36a9 9 0 1 1 12.72 0L12 23.73zM12 13a3 3 0 1 1 0-6 3 3 0 0 1 0 6z"/>
+            </svg>
+            <span>${language === 'ne' ? stop.landmarkNe : stop.landmarkEn}</span>
           </div>
-          <div class="mt-2 text-[10px] text-amber-700 bg-amber-50 rounded px-2 py-1 flex items-center justify-between">
+          <div class="mt-2 text-[10px] text-blue-700 bg-blue-50 rounded px-2 py-1 flex items-center justify-between">
             <span>${language === 'ne' ? 'रुटहरू:' : 'Routes:'}</span>
             <span class="font-bold">1, 2, 3, 4, 5</span>
           </div>
@@ -305,7 +317,7 @@ export const MagicMap: React.FC<MagicMapProps> = ({
         vehicle.occupancy === 'empty'
           ? 'bg-emerald-500'
           : vehicle.occupancy === 'moderate'
-          ? 'bg-amber-500'
+          ? 'bg-yellow-500'
           : 'bg-rose-500';
 
       const html = `
@@ -316,10 +328,10 @@ export const MagicMap: React.FC<MagicMapProps> = ({
             
             <!-- Vehicle Body -->
             <div class="relative flex items-center justify-center w-9 h-9 rounded-xl shadow-lg border-2 border-white transition-all"
-                 style="background: linear-gradient(135deg, ${routeColor}, ${routeColor}dd);">
+                 style="background-color: ${routeColor};">
               
               <!-- Route Badge in Corner -->
-              <span class="absolute -top-1.5 -right-1.5 bg-slate-900 text-white text-[9px] font-black px-1 py-0.2 rounded shadow">
+              <span class="absolute -top-1.5 -right-1.5 bg-neutral-900 text-white text-[9px] font-black px-1 py-0.2 rounded shadow">
                 R${vehicle.routeNumber}
               </span>
 
@@ -334,7 +346,7 @@ export const MagicMap: React.FC<MagicMapProps> = ({
             </div>
 
             <!-- Plate Number Tag -->
-            <div class="absolute -bottom-5 left-1/2 -translate-x-1/2 whitespace-nowrap bg-slate-900/90 text-white text-[9px] font-bold px-1.5 py-0.5 rounded shadow pointer-events-none flex items-center gap-1">
+            <div class="absolute -bottom-5 left-1/2 -translate-x-1/2 whitespace-nowrap bg-neutral-900/90 text-white text-[9px] font-bold px-1.5 py-0.5 rounded shadow pointer-events-none flex items-center gap-1">
               <span class="w-1.5 h-1.5 rounded-full ${occupancyDotColor}"></span>
               <span>${vehicle.plateNumber}</span>
               ${isBroadcasting ? '<span class="text-emerald-400">● LIVE</span>' : ''}
@@ -389,8 +401,11 @@ export const MagicMap: React.FC<MagicMapProps> = ({
             </span>
           </div>
           
-          <div class="text-xs text-slate-700 font-semibold mb-1">
-            👨‍✈️ ${vehicle.driverName}
+          <div class="text-xs text-slate-700 font-semibold mb-1 flex items-center gap-1.5">
+            <svg class="w-3.5 h-3.5 text-blue-600 shrink-0" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M4 22a8 8 0 1 1 16 0h-2a6 6 0 1 0-12 0H4zm8-9c-3.315 0-6-2.685-6-6s2.685-6 6-6 6 2.685 6 6-2.685 6-6 6zm0-2c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4z"/>
+            </svg>
+            <span>${vehicle.driverName}</span>
           </div>
 
           <div class="grid grid-cols-2 gap-2 my-2 bg-slate-50 p-2 rounded-lg text-[11px]">
@@ -409,7 +424,7 @@ export const MagicMap: React.FC<MagicMapProps> = ({
             <span class="font-bold text-slate-900">
               ${language === 'ne' ? vehicle.nextStopNameNe : vehicle.nextStopNameEn}
             </span>
-            <span class="text-[11px] text-amber-600 font-medium ml-1">
+            <span class="text-[11px] text-blue-600 font-semibold ml-1">
               (~${Math.ceil(vehicle.estimatedNextStopSec / 60)} min)
             </span>
           </div>
@@ -535,10 +550,18 @@ export const MagicMap: React.FC<MagicMapProps> = ({
           <div className="relative">
             <button
               onClick={() => setShowLayerMenu((prev) => !prev)}
-              className="bg-white/95 dark:bg-slate-900/95 backdrop-blur-md hover:bg-slate-100 dark:hover:bg-slate-800 px-3 py-2 rounded-xl shadow-md border border-slate-200 dark:border-slate-800 text-xs font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1.5 transition-colors cursor-pointer"
+              className="bg-white/95 dark:bg-slate-900/95 backdrop-blur-md hover:bg-slate-100 dark:hover:bg-slate-800 px-3 py-2 rounded-xl shadow-md border border-slate-200 dark:border-slate-800 text-xs font-bold text-slate-800 dark:text-slate-200 flex items-center gap-2 transition-colors cursor-pointer"
               title="Change Map Style"
             >
-              <span>{mapMode === 'schematic' ? '🧭' : basemap === 'carto-dark' ? '🌙' : basemap === 'esri-free' ? '🆓' : '🗺️'}</span>
+              {mapMode === 'schematic' ? (
+                <RiCompass3Line className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+              ) : basemap === 'carto-dark' ? (
+                <RiMoonLine className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+              ) : basemap === 'esri-free' ? (
+                <RiEarthLine className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+              ) : (
+                <RiRoadMapLine className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+              )}
               <span className="hidden sm:inline">
                 {mapMode === 'schematic'
                   ? (language === 'ne' ? 'ट्रान्जिट भेक्टर' : 'Vector Schematic')
@@ -548,7 +571,7 @@ export const MagicMap: React.FC<MagicMapProps> = ({
                   ? (language === 'ne' ? 'डार्क नक्सा' : 'Dark Map')
                   : (language === 'ne' ? 'सडक नक्सा' : 'CARTO Map')}
               </span>
-              <span className="text-[10px] opacity-60">▼</span>
+              <RiArrowDownSLine className="w-3.5 h-3.5 opacity-60 ml-0.5" />
             </button>
 
             {showLayerMenu && (
@@ -565,18 +588,20 @@ export const MagicMap: React.FC<MagicMapProps> = ({
                   }}
                   className={`w-full text-left px-2.5 py-2 rounded-xl text-xs flex items-center justify-between cursor-pointer transition-colors ${
                     mapMode === 'leaflet' && basemap === 'carto-voyager'
-                      ? 'bg-amber-50 dark:bg-amber-950/40 text-amber-900 dark:text-amber-300 font-bold'
+                      ? 'bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 font-bold'
                       : 'hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300'
                   }`}
                 >
-                  <div className="flex items-center gap-2">
-                    <span>🗺️</span>
+                  <div className="flex items-center gap-2.5">
+                    <RiRoadMapLine className="w-4 h-4 text-blue-600 dark:text-blue-400 shrink-0" />
                     <div>
                       <div className="font-bold">CARTO Voyager</div>
                       <div className="text-[10px] opacity-75">Clean Street (Key Active)</div>
                     </div>
                   </div>
-                  {mapMode === 'leaflet' && basemap === 'carto-voyager' && <span>✓</span>}
+                  {mapMode === 'leaflet' && basemap === 'carto-voyager' && (
+                    <RiCheckLine className="w-4 h-4 text-blue-600 dark:text-blue-400 shrink-0" />
+                  )}
                 </button>
 
                 <button
@@ -587,18 +612,20 @@ export const MagicMap: React.FC<MagicMapProps> = ({
                   }}
                   className={`w-full text-left px-2.5 py-2 rounded-xl text-xs flex items-center justify-between cursor-pointer transition-colors ${
                     mapMode === 'leaflet' && basemap === 'esri-free'
-                      ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-900 dark:text-emerald-300 font-bold'
+                      ? 'bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 font-bold'
                       : 'hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300'
                   }`}
                 >
-                  <div className="flex items-center gap-2">
-                    <span>🆓</span>
+                  <div className="flex items-center gap-2.5">
+                    <RiEarthLine className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
                     <div>
                       <div className="font-bold">ESRI World Street</div>
-                      <div className="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold">100% Free · No Key</div>
+                      <div className="text-[10px] text-blue-600 dark:text-blue-400 font-semibold">100% Free · No Key</div>
                     </div>
                   </div>
-                  {mapMode === 'leaflet' && basemap === 'esri-free' && <span>✓</span>}
+                  {mapMode === 'leaflet' && basemap === 'esri-free' && (
+                    <RiCheckLine className="w-4 h-4 text-blue-600 dark:text-blue-400 shrink-0" />
+                  )}
                 </button>
 
                 <button
@@ -609,18 +636,20 @@ export const MagicMap: React.FC<MagicMapProps> = ({
                   }}
                   className={`w-full text-left px-2.5 py-2 rounded-xl text-xs flex items-center justify-between cursor-pointer transition-colors ${
                     mapMode === 'leaflet' && basemap === 'carto-dark'
-                      ? 'bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white font-bold'
+                      ? 'bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 font-bold'
                       : 'hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300'
                   }`}
                 >
-                  <div className="flex items-center gap-2">
-                    <span>🌙</span>
+                  <div className="flex items-center gap-2.5">
+                    <RiMoonLine className="w-4 h-4 text-blue-600 dark:text-blue-400 shrink-0" />
                     <div>
                       <div className="font-bold">Dark Matter</div>
                       <div className="text-[10px] opacity-75">Night Transit Mode</div>
                     </div>
                   </div>
-                  {mapMode === 'leaflet' && basemap === 'carto-dark' && <span>✓</span>}
+                  {mapMode === 'leaflet' && basemap === 'carto-dark' && (
+                    <RiCheckLine className="w-4 h-4 text-blue-600 dark:text-blue-400 shrink-0" />
+                  )}
                 </button>
 
                 <button
@@ -631,18 +660,20 @@ export const MagicMap: React.FC<MagicMapProps> = ({
                   }}
                   className={`w-full text-left px-2.5 py-2 rounded-xl text-xs flex items-center justify-between cursor-pointer transition-colors ${
                     mapMode === 'schematic'
-                      ? 'bg-purple-50 dark:bg-purple-950/40 text-purple-900 dark:text-purple-300 font-bold'
+                      ? 'bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 font-bold'
                       : 'hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300'
                   }`}
                 >
-                  <div className="flex items-center gap-2">
-                    <span>🧭</span>
+                  <div className="flex items-center gap-2.5">
+                    <RiCompass3Line className="w-4 h-4 text-blue-600 dark:text-blue-400 shrink-0" />
                     <div>
                       <div className="font-bold">Vector Schematic</div>
                       <div className="text-[10px] opacity-75">Zero Network / Offline</div>
                     </div>
                   </div>
-                  {mapMode === 'schematic' && <span>✓</span>}
+                  {mapMode === 'schematic' && (
+                    <RiCheckLine className="w-4 h-4 text-blue-600 dark:text-blue-400 shrink-0" />
+                  )}
                 </button>
               </div>
             )}
@@ -652,10 +683,10 @@ export const MagicMap: React.FC<MagicMapProps> = ({
           {mapMode === 'leaflet' && (
             <button
               onClick={handleCenterBharatpur}
-              className="bg-white/95 dark:bg-slate-900/95 backdrop-blur-md hover:bg-slate-100 dark:hover:bg-slate-800 p-2 rounded-xl shadow-md border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-200 transition-colors cursor-pointer text-xs font-semibold flex items-center gap-1"
+              className="bg-white/95 dark:bg-slate-900/95 backdrop-blur-md hover:bg-slate-100 dark:hover:bg-slate-800 px-3 py-2 rounded-xl shadow-md border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-200 transition-colors cursor-pointer text-xs font-semibold flex items-center gap-1.5"
               title={language === 'ne' ? 'भरतपुर केन्द्रित गर्नुहोस्' : 'Center on Bharatpur'}
             >
-              <span>🎯</span>
+              <RiFocus2Line className="w-4 h-4 text-blue-600 dark:text-blue-400" />
               <span className="hidden sm:inline">{language === 'ne' ? 'केन्द्र' : 'Center'}</span>
             </button>
           )}
@@ -670,7 +701,7 @@ export const MagicMap: React.FC<MagicMapProps> = ({
           <span className="text-slate-700 dark:text-slate-300 text-[11px] font-medium">{language === 'ne' ? 'सिट खाली' : 'Seats open'}</span>
         </div>
         <div className="flex items-center gap-1.5">
-          <div className="w-2.5 h-2.5 rounded-full bg-amber-500"></div>
+          <div className="w-2.5 h-2.5 rounded-full bg-yellow-500"></div>
           <span className="text-slate-700 dark:text-slate-300 text-[11px] font-medium">{language === 'ne' ? 'केही सिट' : 'Few seats'}</span>
         </div>
         <div className="flex items-center gap-1.5">

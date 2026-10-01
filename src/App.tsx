@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { BrowserRouter, Routes, Route, Link, useLocation, useNavigate } from 'react-router-dom';
-import { Language, MagicVehicle, OccupancyStatus } from './types/transit';
+import React, { useState, useEffect, useMemo } from 'react';
+import { BrowserRouter, Routes, Route, useNavigate } from 'react-router-dom';
+import { Language, MagicVehicle } from './types/transit';
 import { TRANSIT_ROUTES, TRANSIT_STOPS, INITIAL_MAGIC_VEHICLES } from './data/bharatpurTransitData';
 import { advanceSimulatedVehicles, findNearestStop } from './services/gpsSimulator';
 import { Navbar } from './components/Navbar';
@@ -8,13 +8,20 @@ import { MagicMap } from './components/MagicMap';
 import { RoutePlanner } from './components/RoutePlanner';
 import { RoutesList } from './components/RoutesList';
 import { LiveFleetTracker } from './components/LiveFleetTracker';
-import { SettingsPage, ThemeMode, BasemapProvider } from './pages/SettingsPage';
 import { FaresPage } from './pages/FaresPage';
-import { Navigation, X } from 'lucide-react';
+import { SettingsPage, ThemeMode, BasemapProvider } from './pages/SettingsPage';
+import { 
+  RiNavigationLine, 
+  RiCloseLine, 
+  RiUser3Line, 
+  RiMapPin2Fill, 
+  RiArrowRightLine, 
+  RiSpeedLine, 
+  RiGroupLine 
+} from 'react-icons/ri';
 
 function AppContent() {
   const navigate = useNavigate();
-  const location = useLocation();
 
   // Theme state with local persistence
   const [theme, setTheme] = useState<ThemeMode>(() => {
@@ -36,7 +43,7 @@ function AppContent() {
   });
 
   // Simulation settings
-  const [isSimulationRunning, setIsSimulationRunning] = useState<boolean>(true);
+  const [isSimulationRunning] = useState<boolean>(true);
   const [simulationSpeedMultiplier, setSimulationSpeedMultiplier] = useState<number>(1.0);
 
   // Fleet state
@@ -114,14 +121,10 @@ function AppContent() {
   const activeVehicle = vehicles.find((v) => v.id === selectedVehicleId);
   const activeStop = TRANSIT_STOPS.find((s) => s.id === selectedStopId);
 
-  // Map View Component
+  // Map View Component - Full height viewport below navbar with no footer
   const MapView = (
-    <div className="relative flex-1 flex flex-col min-h-[calc(100vh-64px)]">
-      {/* Interactive Map Viewport */}
-      <div
-        className="relative flex-1 w-full"
-        style={{ height: 'calc(100vh - 64px)', minHeight: '580px', width: '100%' }}
-      >
+    <div className="relative flex-1 flex flex-col h-[calc(100vh-56px)] sm:h-[calc(100vh-64px)] w-full overflow-hidden">
+      <div className="relative w-full h-full">
         <MagicMap
           routes={TRANSIT_ROUTES}
           stops={TRANSIT_STOPS}
@@ -145,80 +148,83 @@ function AppContent() {
           onResetFleet={handleResetFleet}
         />
 
-        {/* Locate User floating button */}
+        {/* Locate User Button */}
         <button
           onClick={handleLocateUser}
-          className="absolute top-4 right-4 z-20 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md hover:bg-slate-100 dark:hover:bg-slate-800 px-3 py-2 rounded-xl shadow-md border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-200 transition-colors cursor-pointer text-xs font-bold flex items-center gap-1.5"
+          className="absolute top-4 right-4 z-20 bg-white/95 dark:bg-[#1e1f20]/95 backdrop-blur-md hover:bg-gray-100 dark:hover:bg-neutral-800 px-3 py-2 rounded-xl shadow-md border border-gray-200 dark:border-neutral-800 text-gray-700 dark:text-gray-200 transition-colors cursor-pointer text-xs font-semibold flex items-center gap-1.5"
           title={language === 'ne' ? 'मेरो स्थान' : 'Locate My Position'}
         >
-          <Navigation className="w-3.5 h-3.5 text-amber-500" />
+          <RiNavigationLine className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
           <span className="hidden sm:inline">{language === 'ne' ? 'मेरो स्थान' : 'Locate'}</span>
         </button>
 
-        {/* Selected Vehicle Float Card */}
+        {/* Selected Vehicle Card */}
         {activeVehicle && (
-          <div className="absolute bottom-6 right-4 left-4 sm:left-auto sm:w-96 z-30 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md rounded-2xl shadow-xl border border-slate-200 dark:border-slate-800 p-4 transition-all">
-            <div className="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-slate-800 mb-2">
+          <div className="absolute bottom-6 right-4 left-4 sm:left-auto sm:w-96 z-30 bg-white/95 dark:bg-[#1e1f20]/95 backdrop-blur-md rounded-2xl shadow-xl border border-gray-200 dark:border-neutral-800 p-4 transition-all">
+            <div className="flex items-center justify-between pb-2 border-b border-gray-100 dark:border-neutral-800 mb-2">
               <div className="flex items-center gap-2">
                 <span
-                  className="w-6 h-6 rounded-lg text-white font-black text-xs flex items-center justify-center"
+                  className="w-6 h-6 rounded-lg text-white font-bold text-xs flex items-center justify-center shadow-xs"
                   style={{
                     backgroundColor:
-                      TRANSIT_ROUTES.find((r) => r.id === activeVehicle.routeId)?.color || '#0284c7',
+                      TRANSIT_ROUTES.find((r) => r.id === activeVehicle.routeId)?.color || '#1a73e8',
                   }}
                 >
                   R{activeVehicle.routeNumber}
                 </span>
-                <span className="font-mono font-bold text-sm text-slate-900 dark:text-white">
+                <span className="font-mono font-bold text-sm text-gray-900 dark:text-gray-100">
                   {activeVehicle.plateNumber}
                 </span>
                 {activeVehicle.isDriverBroadcasting && (
-                  <span className="text-[10px] font-black text-emerald-600 bg-emerald-50 dark:bg-emerald-950/60 px-1.5 py-0.5 rounded">
-                    ● BROADCASTING
+                  <span className="text-[10px] font-semibold text-emerald-600 bg-emerald-50 dark:bg-emerald-950/60 px-1.5 py-0.5 rounded">
+                    LIVE
                   </span>
                 )}
               </div>
 
               <button
                 onClick={() => setSelectedVehicleId(null)}
-                className="p-1 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 rounded-lg cursor-pointer"
+                className="p-1 text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 rounded-lg cursor-pointer"
               >
-                <X className="w-4 h-4" />
+                <RiCloseLine className="w-4 h-4" />
               </button>
             </div>
 
-            <div className="text-xs text-slate-700 dark:text-slate-300 font-semibold mb-2">
-              👨‍✈️ {activeVehicle.driverName}
+            <div className="flex items-center gap-1.5 text-xs text-gray-700 dark:text-gray-300 font-medium mb-2.5">
+              <RiUser3Line className="w-3.5 h-3.5 text-gray-400" />
+              <span>{activeVehicle.driverName}</span>
             </div>
 
-            <div className="grid grid-cols-2 gap-2 text-xs bg-slate-50 dark:bg-slate-800/60 p-2.5 rounded-xl mb-3">
+            <div className="grid grid-cols-2 gap-2 text-xs bg-gray-50 dark:bg-neutral-900 p-2.5 rounded-xl mb-3 border border-gray-100 dark:border-neutral-800">
               <div>
-                <span className="text-[10px] uppercase font-bold text-slate-400 block">
+                <span className="text-[10px] uppercase font-semibold text-gray-400 flex items-center gap-1 mb-0.5">
+                  <RiSpeedLine className="w-3.5 h-3.5 text-gray-400" />
                   {language === 'ne' ? 'गति' : 'Current Speed'}
                 </span>
-                <span className="font-black text-slate-900 dark:text-white">
+                <span className="font-bold text-gray-900 dark:text-gray-100">
                   {activeVehicle.speedKmH} km/h
                 </span>
               </div>
 
               <div>
-                <span className="text-[10px] uppercase font-bold text-slate-400 block">
+                <span className="text-[10px] uppercase font-semibold text-gray-400 flex items-center gap-1 mb-0.5">
+                  <RiGroupLine className="w-3.5 h-3.5 text-gray-400" />
                   {language === 'ne' ? 'खाली सिट' : 'Open Seats'}
                 </span>
-                <span className="font-black text-emerald-600 dark:text-emerald-400">
+                <span className="font-bold text-blue-600 dark:text-blue-400">
                   {activeVehicle.availableSeats} of {activeVehicle.totalSeats}
                 </span>
               </div>
             </div>
 
             <div className="text-xs mb-3">
-              <span className="text-[10px] uppercase font-bold text-slate-400 block">
+              <span className="text-[10px] uppercase font-semibold text-gray-400 block mb-0.5">
                 {language === 'ne' ? 'अघिल्लो बिसौनी' : 'Next Approaching Stop'}
               </span>
-              <span className="font-bold text-slate-900 dark:text-white">
+              <span className="font-bold text-gray-900 dark:text-gray-100">
                 {language === 'ne' ? activeVehicle.nextStopNameNe : activeVehicle.nextStopNameEn}
               </span>
-              <span className="text-amber-600 dark:text-amber-400 font-semibold text-[11px] ml-1">
+              <span className="text-blue-600 dark:text-blue-400 font-semibold text-[11px] ml-1.5">
                 (~{Math.ceil(activeVehicle.estimatedNextStopSec / 60)} min)
               </span>
             </div>
@@ -228,51 +234,53 @@ function AppContent() {
                 onClick={() => {
                   setSelectedRouteId(activeVehicle.routeId);
                 }}
-                className="flex-1 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 text-xs font-bold rounded-xl transition-colors cursor-pointer"
+                className="flex-1 py-2 bg-gray-100 dark:bg-neutral-800 hover:bg-gray-200 dark:hover:bg-neutral-700 text-gray-800 dark:text-gray-200 text-xs font-semibold rounded-xl transition-colors cursor-pointer"
               >
-                {language === 'ne' ? 'सम्पूर्ण रुट हेर्नुहोस्' : 'Filter this Route'}
+                {language === 'ne' ? 'रुट फिल्टर' : 'Filter Route'}
               </button>
 
               <button
-                onClick={() => navigate('/planner')}
-                className="py-2 px-3 bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-bold rounded-xl transition-colors cursor-pointer"
+                onClick={() => navigate('/plan')}
+                className="py-2 px-3.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-xl transition-colors cursor-pointer flex items-center gap-1"
               >
-                {language === 'ne' ? 'चढ्ने योजना' : 'Plan Trip'}
+                <span>{language === 'ne' ? 'योजना' : 'Plan Trip'}</span>
+                <RiArrowRightLine className="w-3.5 h-3.5" />
               </button>
             </div>
           </div>
         )}
 
-        {/* Selected Stop Float Card */}
+        {/* Selected Stop Card */}
         {activeStop && !activeVehicle && (
-          <div className="absolute bottom-6 right-4 left-4 sm:left-auto sm:w-96 z-30 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md rounded-2xl shadow-xl border border-slate-200 dark:border-slate-800 p-4 transition-all">
-            <div className="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-slate-800 mb-2">
+          <div className="absolute bottom-6 right-4 left-4 sm:left-auto sm:w-96 z-30 bg-white/95 dark:bg-[#1e1f20]/95 backdrop-blur-md rounded-2xl shadow-xl border border-gray-200 dark:border-neutral-800 p-4 transition-all">
+            <div className="flex items-center justify-between pb-2 border-b border-gray-100 dark:border-neutral-800 mb-2">
               <div className="flex items-center gap-2">
-                <div className="w-6 h-6 rounded-lg bg-amber-500 text-slate-950 flex items-center justify-center font-bold text-xs">
-                  📍
+                <div className="w-6 h-6 rounded-lg bg-blue-600 text-white flex items-center justify-center font-bold text-xs">
+                  <RiMapPin2Fill className="w-3.5 h-3.5" />
                 </div>
-                <span className="font-bold text-sm text-slate-900 dark:text-white">
+                <span className="font-bold text-sm text-gray-900 dark:text-gray-100">
                   {language === 'ne' ? activeStop.nameNe : activeStop.nameEn}
                 </span>
               </div>
 
               <button
                 onClick={() => setSelectedStopId(null)}
-                className="p-1 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 rounded-lg cursor-pointer"
+                className="p-1 text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 rounded-lg cursor-pointer"
               >
-                <X className="w-4 h-4" />
+                <RiCloseLine className="w-4 h-4" />
               </button>
             </div>
 
-            <p className="text-xs text-slate-600 dark:text-slate-400 mb-3">
-              📍 {language === 'ne' ? activeStop.landmarkNe : activeStop.landmarkEn}
+            <p className="text-xs text-gray-600 dark:text-gray-400 mb-3">
+              {language === 'ne' ? activeStop.landmarkNe : activeStop.landmarkEn}
             </p>
 
             <button
-              onClick={() => navigate('/planner')}
-              className="w-full py-2 bg-slate-900 dark:bg-amber-500 dark:text-slate-950 hover:bg-slate-800 text-white text-xs font-bold rounded-xl transition-colors cursor-pointer"
+              onClick={() => navigate('/plan')}
+              className="w-full py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-xl transition-colors cursor-pointer flex items-center justify-center gap-1.5"
             >
-              {language === 'ne' ? 'यहाँबाट यात्रा योजना बनाउनुहोस्' : 'Plan Trip from this Stop'}
+              <span>{language === 'ne' ? 'यहाँबाट यात्रा योजना बनाउनुहोस्' : 'Plan Trip from this Stop'}</span>
+              <RiArrowRightLine className="w-3.5 h-3.5" />
             </button>
           </div>
         )}
@@ -281,13 +289,8 @@ function AppContent() {
   );
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col text-slate-900 dark:text-slate-100 font-sans transition-colors">
-      <Navbar
-        routes={TRANSIT_ROUTES}
-        selectedRouteId={selectedRouteId}
-        onSelectRoute={setSelectedRouteId}
-        language={language}
-      />
+    <div className="min-h-screen bg-[#f8f9fa] dark:bg-[#131314] flex flex-col text-gray-900 dark:text-gray-100 font-sans transition-colors">
+      <Navbar language={language} />
 
       <main className="flex-1 flex flex-col">
         <Routes>
@@ -377,36 +380,6 @@ function AppContent() {
           <Route path="*" element={MapView} />
         </Routes>
       </main>
-
-      {/* Footer */}
-      <footer className="bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 py-6 px-4 text-center text-xs text-slate-500 dark:text-slate-400 transition-colors">
-        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3">
-          <div className="flex items-center gap-2">
-            <span className="font-display font-bold text-slate-800 dark:text-white">MagicTrack Bharatpur</span>
-            <span>·</span>
-            <span>Chitwan, Nepal</span>
-          </div>
-
-          <div className="flex flex-wrap items-center justify-center gap-5 text-xs font-semibold text-slate-600 dark:text-slate-300">
-            <Link to="/" className="hover:text-amber-600 transition-colors">
-              Map
-            </Link>
-            <Link to="/plan" className="hover:text-amber-600 transition-colors">
-              Plan
-            </Link>
-            <Link to="/fare" className="hover:text-amber-600 transition-colors">
-              Fare
-            </Link>
-            <Link to="/settings" className="hover:text-amber-600 transition-colors">
-              Settings
-            </Link>
-          </div>
-
-          <div className="text-[11px] text-slate-400 dark:text-slate-500">
-            Smart Microvan Transit Solution
-          </div>
-        </div>
-      </footer>
     </div>
   );
 }
